@@ -1,100 +1,17 @@
 # Load packages
 library(shiny)
 library(shinythemes)
-library(highcharter)
 library(KFAS)
 library(xts)
 library(dygraphs)
 library(DT)
 library(tidyverse)
+library(gtrendsR)
 
-# Kalman Filter ----------------------------------------------------
-get_cmp <- function(x) {
-  x[x < 0] <- NA
-  k <- dim(x)[2] - 1
-  n <- dim(x)[1]
-  levels <- matrix(0, n, k, dimnames = list(NULL, names(x)[-1]))
-  rates <- matrix(0, n, k, dimnames = list(NULL, names(x)[-1]))
-  for (i in 1:k) {
-    y <- as.numeric(log(1 + x[[1 + i]]))
-    mod <- SSModel(y ~ SSMtrend(2, list(0, NA)) + SSMseasonal(7, NA),
-    H = NA
-    )
-    vy <- var(diff(y), na.rm = TRUE)
-    fit <- fitSSM(mod, log(c(vy / 100, vy / 100, vy / 100)))
-    kfs <- KFS(fit$model, smoothing = "state")
-    levels[, i] <- as.numeric(exp(kfs$alphahat[, 1] + 0.5 * kfs$V[1, 1, ])) - 1
-    levels[levels < 0] <- 0
-    rates[, i] <- (levels[, i] - lag(levels[, i])) / lag(levels[, i]) #as.numeric(kfs$alphahat[, 2])
-  }
-  list(
-    livello = as_tibble(data = x[[1]], levels),
-    crescita = as_tibble(data = x[[1]], rates * 100)
-  )
-}
-
-
-# Dati regionali
-raw_regione <- read.csv(file = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv", stringsAsFactors = FALSE)
-
-# Dati provinciali
-raw_prov <- read.csv(file = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-province/dpc-covid19-ita-province.csv", stringsAsFactors = FALSE)
-
-# Dati vaccini
-raw_vacc_regione <- read.csv(file = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv", stringsAsFactors = FALSE)
-
-# Popolazione delle regioni e delle province
-pop_regioni <- read.csv(file = "regioni.csv", stringsAsFactors = T)
-pop_province <- read.csv(file = "province.csv", stringsAsFactors = T)
-
-# Organizzazione dei dati ------------------------------
-
-data_reg <- data.frame(
-  data = as.Date(strtrim(raw_regione$data, 10)),
-  regione = raw_regione$denominazione_regione,
-  decessi = raw_regione$deceduti,
-  contagiati = raw_regione$nuovi_positivi,
-  terapia_intensiva = raw_regione$terapia_intensiva,
-  tamponi = raw_regione$tamponi
-)
-
-data_vacc_reg <- data.frame(
-  data = as.Date(strtrim(raw_vacc_regione$data_somministrazione, 10)),
-  regione = raw_vacc_regione$nome_area,
-  fornitore = raw_vacc_regione$fornitore,
-  prima_dose = raw_vacc_regione$prima_dose,
-  seconda_dose = raw_vacc_regione$seconda_dose,
-  dosi_totali = raw_vacc_regione$prima_dose + raw_vacc_regione$seconda_dose,
-  fascia_anagrafica = raw_vacc_regione$fascia_anagrafica
-)
-
-data_prov <- data.frame(
-  data = as.Date(strtrim(raw_prov$data, 10)),
-  regione = raw_prov$denominazione_regione,
-  sigla = raw_prov$sigla_provincia,
-  provincia = raw_prov$denominazione_provincia,
-  contagiati = raw_prov$totale_casi,
-  decessi = NA,
-  terapia_intensiva = NA,
-  tamponi = NA
-)
-
-data_vacc_reg$regione[data_vacc_reg$regione == "Provincia Autonoma Bolzano / Bozen"] <- "P.A. Bolzano"
-data_vacc_reg$regione[data_vacc_reg$regione == "Provincia Autonoma Trento"] <- "P.A. Trento"
-data_vacc_reg$regione[data_vacc_reg$regione == "Valle d'Aosta / Vallée d'Aoste"] <- "Valle d'Aosta"
-data_vacc_reg$regione[data_vacc_reg$regione == "Friuli-Venezia Giulia"] <- "Friuli Venezia Giulia"
-
-data_prov$sigla[is.na(data_prov$sigla)] <- "NAP"
-data_prov <- data_prov[data_prov$provincia != "In fase di definizione/aggiornamento", ]
-data_prov <- data_prov[data_prov$provincia != "Fuori Regione / Provincia Autonoma", ]
-
-max_date <- max(data_reg$data)
-min_date <- min(data_reg$data)
-
-data_reg <- merge(data_reg, pop_regioni, by.x = "regione", by.y = "Regione")
-data_prov <- merge(data_prov, pop_province, by.x = "provincia", by.y = "Provincia")
-data_vacc_reg <- merge(data_vacc_reg, pop_regioni, by.x = "regione", by.y = "Regione")
-
+# Carica le funzioni utili
+source("kalman_f.R")
+source("gtrends.R")
+source("download_data.R")
 
 # Define UI --------------------------------------------------------------
 ui <- fluidPage(
@@ -149,25 +66,35 @@ ui <- fluidPage(
           ),
           HTML("<hr> <b> I dati</b>. I dati originali sono resi disponibili dal Dipartimento della protezione civile a questo link: <a href='https://github.com/pcm-dpc/COVID-19'>https://github.com/pcm-dpc/COVID-19</a>. I dati relativi alla popolazione residente di regioni e province fanno riferimento al 1 Gennaio 2020 e sono disponibili sul <a href='http://dati.istat.it/Index.aspx?QueryId=42869'> portale ISTAT</a>. <hr>
 <b>Il metodo</b>. Il <i>trend</i> è ottenuto tramite Kalman filter, stimato sulla scala logaritmica. Il ternd rappresenta una versione dei dati depurata dalle oscillazioni casuali e quindi è di più facile interpretazione. Il <i>tasso di crescita</i> invece rappresenta la variazione percentuale giornaliera del trend. Ad esempio, il tasso di crescita di oggi si calcola tramite la formula: 100*(trend di oggi - trend di ieri) / (trend di ieri). 
-      <hr> L'autore di questa applicazione è <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti.")
+      <hr>Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti.")
         ),
 
         # Output: Description, lineplot, and reference
         mainPanel(
           tabsetPanel(
             tabPanel(
-              "Grafici",
+              "Evoluzione epidemia",
               dygraphOutput("casi"),
               hr(),
               dygraphOutput("tassi"),
               hr()
             ),
             tabPanel(
-              "Tabelle",
+              "Ultimo dato disponibile",
               hr(),
               textOutput("tab_testo"),
               hr(),
               DTOutput("tabella")
+            ),
+            tabPanel(
+              "Google trends",
+              hr(),
+              HTML("<b> Sperimentale</b>. Il grafico di questa sezione mette a confronto la serie storica dei nuovi positivi (nazionale) e i dati relativi a Google trends, utilizzando la parola chiave 'sintomi covid'. Entrambe le serie storiche sono state opportunamente lisciate tramite Kalman filter e riscalatate (divise per il massimo e moltiplicate per 100), per poter essere confrontabili."),
+              hr(),
+              dygraphOutput("gtrends"),
+              hr(),
+              dygraphOutput("tassi_gtrends"),
+              hr()
             )
           )
         )
@@ -206,7 +133,7 @@ ui <- fluidPage(
           ),
           HTML("<hr> <b>I dati</b>. I dati originali sono resi disponibili dal Commissario straordinario per l'emergenza Covid-19 a questo link: <a href='https://github.com/italia/covid19-opendata-vaccini'>https://github.com/italia/covid19-opendata-vaccini</a>. Le tabelle riportano il numero di vaccini somministrati (prima tabella) e la percentuale rispetto alla popolazione nazionale / regionale (seconda tabella). I dati relativi alla popolazione residente di regioni e province fanno riferimento al 1 Gennaio 2020 e sono disponibili sul <a href='http://dati.istat.it/Index.aspx?QueryId=42869'> portale ISTAT </a>.<hr>
           <b>Il metodo</b>. Il <i>trend</i> è ottenuto tramite Kalman filter, stimato sulla scala logaritmica. Il ternd rappresenta una versione dei dati depurata dalle oscillazioni casuali e quindi è di più facile interpretazione.
-      <hr> L'autore di questa applicazione è <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti.")
+      <hr>Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti.")
         ),
 
         # Output: Description, lineplot, and reference
@@ -396,6 +323,21 @@ server <- function(input, output) {
       main = "Tasso di crescita giornaliero (%)", ylab = "Tasso di crescita giornaliero (%)"
     ) %>%
       dyLimit(limit = 0, strokePattern = "dashed") %>%
+      dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
+  })
+  
+  output$gtrends <- renderDygraph({
+    region <- "Italia"
+    type <- "Nuovi Positivi"
+    data_plot <- dati_positivi_regione()$livello[, region]
+    gtrend_data <- tibble(get_gtrend(keyword = "sintomi covid", region = region, from = max_date - 180, to = max_date, output = "data.frame")) %>% transmute(date = date, Google_trend= hits)
+    fit <- get_cmp(gtrend_data)$livello; fit <- fit / max(fit) * 100
+    gtrend_data <- xts(fit, gtrend_data$date)
+    data_plot <- data_plot[(index(data_plot) >= max_date - 180) & (index(data_plot) <= max_date), ]
+    data_plot$Italia <- data_plot$Italia / max(data_plot$Italia) * 100
+    data_plot <- merge(gtrend_data, data_plot, all = T)
+  
+    dygraph(data_plot, main = paste("Nuovi positivi vs Google trend (sintomi covid)"), ylab = "Scala arbitraria (max 100)") %>%
       dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
   })
 
