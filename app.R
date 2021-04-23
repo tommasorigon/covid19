@@ -76,6 +76,8 @@ ui <- fluidPage(
             tabPanel(
               "Evoluzione epidemia",
               hr(),
+              HTML("<b> Nota</b>. I seguenti grafici fanno riferimento al <b>trend</b> ottenuto tramite <i>Kalman filter</i> e non ai valori osservati. Si consulti la documentazione per ulteriori informazioni sulla metodologia. "),
+              hr(),
               dygraphOutput("casi"),
               hr(),
               dygraphOutput("tassi"),
@@ -92,8 +94,8 @@ ui <- fluidPage(
             tabPanel(
               "Google trends",
               hr(),
-              HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends </b> </a>, utilizzando la parola chiave 'sintomi covid'. Entrambe le serie storiche sono state opportunamente depurate tramite Kalman filter e quindi riscalatate (ovvero divise per il massimo e moltiplicate per 100), per poter essere confrontabili.
-                   <hr> <b> Nota</b>. Attualmente sono disponibili solamente i <b> dati nazionali </b> degli ultimi 180 giorni. "),
+              HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends </b> </a>, utilizzando la parola chiave 'sintomi covid'.
+              <hr> Entrambe le serie storiche sono state opportunamente depurate tramite <i>Kalman filter</i>. Nel primo grafico le serie sono state riscalatate (ovvero divise per il massimo e moltiplicate per 100), per poter essere confrontabili. Attualmente sono disponibili solamente i <b> dati nazionali </b> degli ultimi 180 giorni. "),
               hr(),
               dygraphOutput("gtrends"),
               hr(),
@@ -144,6 +146,8 @@ ui <- fluidPage(
           tabsetPanel(
             tabPanel(
               "Evoluzione",
+              hr(),
+              HTML("<b> Nota</b>. Il seguente grafico fa riferimento al <b>trend</b> ottenuto tramite <i>Kalman filter</i> e non ai valori osservati. Si consulti la documentazione per ulteriori informazioni sulla metodologia. "),
               hr(),
               dygraphOutput("vaccini"),
               hr()
@@ -313,7 +317,7 @@ server <- function(input, output) {
 
 
     data_plot <- data_plot[(index(data_plot) >= input$date[1]) & (index(data_plot) <= input$date[2]), ]
-    dygraph(data_plot, main = paste(type, "ogni 100.000 abitanti (trend)"), ylab = paste(type, "ogni 100.000 abitanti")) %>%
+    dygraph(data_plot, main = paste(type, "ogni 100.000 abitanti"), ylab = paste(type, "ogni 100.000 abitanti")) %>%
       dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
   })
 
@@ -325,7 +329,7 @@ server <- function(input, output) {
     }
 
     data_plot <- data_plot[(index(data_plot) >= input$date[1]) & (index(data_plot) <= input$date[2]), ]
-    dygraph(data_plot, main = paste("Dosi totali giornaliere somministrate (trend)")) %>%
+    dygraph(data_plot, main = paste("Dosi totali giornaliere somministrate")) %>%
       dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
   })
 
@@ -367,7 +371,7 @@ server <- function(input, output) {
     gtrend <- dati_google_trends_nazionale()$livello
     data_plot <- merge(gtrend, data_plot, all = TRUE)
 
-    dygraph(data_plot, main = paste("Nuovi positivi vs Google trend"), ylab = "Scala arbitraria (max 100)") %>%
+    dygraph(data_plot, main = paste("Nuovi positivi vs Google trend"), ylab = "Scala arbitraria (min 0, max 100)") %>%
       dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
   })
 
@@ -383,7 +387,7 @@ server <- function(input, output) {
   })
 
   output$tab_testo <- renderText({
-    paste("Giorno considerato per le stime: ", input$date[2], ". <b> Nota</b>. La seguente tabella riporta il numero di casi / decessi stimati tramite Kalman filter e non il valore osservato.", sep = "")
+    paste("Giorno considerato per le stime: ", input$date[2], ". La seguente tabella riporta il numero di casi / decessi stimati tramite Kalman filter e non il valore osservato.", sep = "")
   })
 
   output$tabella <- renderDT({
