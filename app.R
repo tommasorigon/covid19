@@ -94,7 +94,7 @@ ui <- fluidPage(
             tabPanel(
               "Google trends",
               hr(),
-              HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends </b> </a>, utilizzando la parola chiave 'sintomi covid'.
+              HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends</b></a>, utilizzando la parola chiave 'sintomi covid'.
               <hr> Entrambe le serie storiche sono state opportunamente depurate tramite <i>Kalman filter</i>. Nel primo grafico le serie sono state riscalatate (ovvero divise per il massimo e moltiplicate per 100), per poter essere confrontabili. Attualmente sono disponibili solamente i <b> dati nazionali </b> degli ultimi 180 giorni. "),
               hr(),
               dygraphOutput("gtrends"),
