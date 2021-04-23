@@ -17,7 +17,7 @@ I dati relativi alle **vaccinazioni** sono resi disponibili dal Commissario stra
 
 ### Il codice sorgente
 
-asd
+Il codice sorgente di questa applicazione è disponibile su GitHub a [questo link]()
 
 ### Il metodo
 
