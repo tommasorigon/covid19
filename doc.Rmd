@@ -1,0 +1,28 @@
+---
+output: 
+  html_document: 
+    theme: united
+---
+
+
+### I dati utilizzati
+
+Questa applicazione fa uso di diverse fonti informative, che sono tutte di pubblico dominio. 
+
+I dati originali relativi ai **nuovi positivi, decessi e pazienti in terapia intensiva** sono resi disponibili dal Dipartimento della protezione civile a questo link: [https://github.com/pcm-dpc/COVID-19](https://github.com/pcm-dpc/COVID-19). 
+
+I dati relativi alla popolazione residente di regioni e province fanno riferimento al 1 Gennaio 2020 e sono disponibili sul [portale ISTAT](http://dati.istat.it/Index.aspx?QueryId=42869)
+
+I dati relativi alle **vaccinazioni** sono resi disponibili dal Commissario straordinario per l'emergenza Covid-19 a questo link: <a href='https://github.com/italia/covid19-opendata-vaccini'>https://github.com/italia/covid19-opendata-vaccini</a>. 
+
+### Il codice sorgente
+
+asd
+
+### Il metodo
+
+Il **trend** è ottenuto tramite Kalman filter, stimato sulla scala logaritmica. Il ternd rappresenta una versione dei dati depurata dalle oscillazioni casuali e quindi è di più facile interpretazione. Il **tasso di crescita** invece rappresenta la variazione percentuale giornaliera del trend. Ad esempio, il tasso di crescita di oggi si calcola tramite la formula: 
+
+$$
+\text{tasso di crescita (%)} = 100*\frac{\text{trend di oggi} - \text{trend di ieri}}{\text{trend di ieri}}.
+$$

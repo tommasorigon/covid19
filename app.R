@@ -15,29 +15,29 @@ source("download_data.R")
 
 # Define UI --------------------------------------------------------------
 ui <- fluidPage(
-
+  
   theme = shinytheme("united"),
+  
   navbarPage(
     "Report dati Covid-19 in Italia",
-    # Tabpanel ----------------------------------------
+    
+    # UI Epidemia ---------------------------------------
     tabPanel(
       "Epidemia",
-      # UI Epidemia ---------------------------------------
       sidebarLayout(
         sidebarPanel(
 
-          # Select type of trend to plot
           selectInput(
             inputId = "datatype", label = strong("Seleziona livello di aggregazione"),
             choices = c("Nazionale", "Regionale", "Provinciale"),
             selected = "Nazionale"
           ),
 
-          # Select date range to be plotted
           dateRangeInput("date", strong("Intervallo temporale"),
             language = "it", start = max_date - 180, end = max_date,
             min = min_date, max = max_date
           ),
+          
           conditionalPanel(
             condition = "input.datatype != 'Provinciale'",
             selectInput(
@@ -47,7 +47,6 @@ ui <- fluidPage(
             )
           ),
 
-          # Select type of trend to plot
           conditionalPanel(
             condition = "input.datatype == 'Regionale'",
             selectInput(
@@ -56,6 +55,7 @@ ui <- fluidPage(
               selected = c("Lombardia", "Veneto")
             )
           ),
+          
           conditionalPanel(
             condition = "input.datatype == 'Provinciale'",
             selectInput(
@@ -64,9 +64,10 @@ ui <- fluidPage(
               selected = c("Milano", "Venezia")
             ),
           ),
-          HTML("<hr> <b> I dati</b>. I dati originali sono resi disponibili dal Dipartimento della protezione civile a questo link: <a href='https://github.com/pcm-dpc/COVID-19'>https://github.com/pcm-dpc/COVID-19</a>. I dati relativi alla popolazione residente di regioni e province fanno riferimento al 1 Gennaio 2020 e sono disponibili sul <a href='http://dati.istat.it/Index.aspx?QueryId=42869'> portale ISTAT</a>. <hr>
-<b>Il metodo</b>. Il <i>trend</i> è ottenuto tramite Kalman filter, stimato sulla scala logaritmica. Il ternd rappresenta una versione dei dati depurata dalle oscillazioni casuali e quindi è di più facile interpretazione. Il <i>tasso di crescita</i> invece rappresenta la variazione percentuale giornaliera del trend. Ad esempio, il tasso di crescita di oggi si calcola tramite la formula: 100*(trend di oggi - trend di ieri) / (trend di ieri). 
-      <hr>Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti.")
+          hr(),
+          HTML("Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti."),
+          hr(),
+          HTML("Per ulteriori informazioni, si rimanda inoltre alla documentazione presente su questo sito.")
         ),
 
         # Output: Description, lineplot, and reference
@@ -74,6 +75,7 @@ ui <- fluidPage(
           tabsetPanel(
             tabPanel(
               "Evoluzione epidemia",
+              hr(),
               dygraphOutput("casi"),
               hr(),
               dygraphOutput("tassi"),
@@ -84,12 +86,14 @@ ui <- fluidPage(
               hr(),
               textOutput("tab_testo"),
               hr(),
-              DTOutput("tabella")
+              DTOutput("tabella"),
+              hr()
             ),
             tabPanel(
               "Google trends",
               hr(),
-              HTML("<b> Sperimentale</b>. Il grafico di questa sezione mette a confronto la serie storica dei nuovi positivi (nazionale) e i dati relativi a Google trends, utilizzando la parola chiave 'sintomi covid'. Entrambe le serie storiche sono state opportunamente lisciate tramite Kalman filter e riscalatate (divise per il massimo e moltiplicate per 100), per poter essere confrontabili."),
+              HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends </b> </a>, utilizzando la parola chiave 'sintomi covid'. Entrambe le serie storiche sono state opportunamente depurate tramite Kalman filter e quindi riscalatate (ovvero divise per il massimo e moltiplicate per 100), per poter essere confrontabili.
+                   <hr> <b> Nota</b>. Per ragioni tecniche, attualmente sono disponibili solamente i dati nazionali degli ultimi 180 giorni. "),
               hr(),
               dygraphOutput("gtrends"),
               hr(),
@@ -110,19 +114,18 @@ ui <- fluidPage(
       sidebarLayout(
         sidebarPanel(
 
-          # Select type of trend to plot
           selectInput(
             inputId = "datatype2", label = strong("Seleziona livello di aggregazione"),
             choices = c("Nazionale", "Regionale"),
             selected = "Nazionale"
           ),
+          
           selectInput(
             inputId = "vaccine", label = strong("Seleziona vaccino"),
             choices = c("Tutti", unique(data_vacc_reg$fornitore)),
             selected = "Tutti"
           ),
 
-          # Select type of trend to plot
           conditionalPanel(
             condition = "input.datatype2 == 'Regionale'",
             selectInput(
@@ -131,26 +134,48 @@ ui <- fluidPage(
               selected = "Lombardia"
             )
           ),
-          HTML("<hr> <b>I dati</b>. I dati originali sono resi disponibili dal Commissario straordinario per l'emergenza Covid-19 a questo link: <a href='https://github.com/italia/covid19-opendata-vaccini'>https://github.com/italia/covid19-opendata-vaccini</a>. Le tabelle riportano il numero di vaccini somministrati (prima tabella) e la percentuale rispetto alla popolazione nazionale / regionale (seconda tabella). I dati relativi alla popolazione residente di regioni e province fanno riferimento al 1 Gennaio 2020 e sono disponibili sul <a href='http://dati.istat.it/Index.aspx?QueryId=42869'> portale ISTAT </a>.<hr>
-          <b>Il metodo</b>. Il <i>trend</i> è ottenuto tramite Kalman filter, stimato sulla scala logaritmica. Il ternd rappresenta una versione dei dati depurata dalle oscillazioni casuali e quindi è di più facile interpretazione.
-      <hr>Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti.")
+          hr(),
+          HTML("Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti."),
+          hr(),
+          HTML("Per ulteriori informazioni, si rimanda inoltre alla documentazione presente su questo sito.")
         ),
 
-        # Output: Description, lineplot, and reference
         mainPanel(
-          dygraphOutput("vaccini"),
-          hr(),
-          DTOutput("tbl"),
-          hr(),
-          DTOutput("tbl2")
+          tabsetPanel(
+            tabPanel(
+              "Evoluzione",
+              hr(),
+              dygraphOutput("vaccini"),
+              hr()
+            ),
+            tabPanel(
+              "Tabelle riassuntive",
+              hr(),
+              HTML(" Le tabelle riportano il numero di vaccini somministrati (prima tabella) e la percentuale rispetto alla popolazione nazionale / regionale (seconda tabella)."),
+              hr(),
+              DTOutput("tbl"),
+              hr(),
+              DTOutput("tbl2"),
+              hr()
+            )
+          )
         )
+      )
+    ),
+
+    # UI Documentazione -----------------------------------------
+    tabPanel(
+      "Documentazione",
+      fluidRow(
+        includeMarkdown("doc.rmd")
       )
     )
   )
 )
 
 
-# Define server ---------------
+
+# Define SERVER ---------------
 server <- function(input, output) {
   dati_positivi_provincia <- reactive({
 
@@ -221,7 +246,6 @@ server <- function(input, output) {
       id_vaccino <- rep(TRUE, nrow(data_vacc_reg))
     }
 
-    # New positive data
     data_plot <- data_vacc_reg[id_vaccino, ]
     data_plot <- aggregate(cbind(dosi_totali) ~ data, sum, data = data_plot)
     data_plot <- data_plot %>% transmute(data = data_plot$data, Italia = pmax(data_plot$dosi_totali, 0))
@@ -241,7 +265,6 @@ server <- function(input, output) {
       id_vaccino <- rep(TRUE, nrow(data_vacc_reg))
     }
 
-    # New positive data
     data_plot <- data_vacc_reg[data_vacc_reg$regione %in% input$region3 & id_vaccino, ]
     data_plot <- aggregate(cbind(dosi_totali) ~ data + regione, sum, data = data_plot)
     data_plot$dosi_totali <- pmax(data_plot$dosi_totali, 0)
@@ -251,6 +274,17 @@ server <- function(input, output) {
     list(
       livello = xts(trend$livello, data_plot$data),
       crescita = xts(trend$crescita, data_plot$data)
+    )
+  })
+
+  dati_google_trends_nazionale <- reactive({
+    gtrend_data <- tibble(get_gtrend(keyword = "sintomi covid", region = "Italia", from = max_date - 180, to = max_date, output = "data.frame")) %>% transmute(date = date, Google = hits)
+    trend <- get_cmp(gtrend_data)
+    trend$livello <- trend$livello / max(trend$livello) * 100
+
+    list(
+      livello = xts(trend$livello, gtrend_data$date),
+      crescita = xts(trend$crescita, gtrend_data$date)
     )
   })
 
@@ -325,24 +359,29 @@ server <- function(input, output) {
       dyLimit(limit = 0, strokePattern = "dashed") %>%
       dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
   })
-  
+
   output$gtrends <- renderDygraph({
-    region <- "Italia"
-    type <- "Nuovi Positivi"
-    data_plot <- dati_positivi_regione()$livello[, region]
-    gtrend_data <- tibble(get_gtrend(keyword = "sintomi covid", region = region, from = max_date - 180, to = max_date, output = "data.frame")) %>% transmute(date = date, Google_trend= hits)
-    fit <- get_cmp(gtrend_data)$livello; fit <- fit / max(fit) * 100
-    gtrend_data <- xts(fit, gtrend_data$date)
+    data_plot <- dati_positivi_regione()$livello[, "Italia"]
     data_plot <- data_plot[(index(data_plot) >= max_date - 180) & (index(data_plot) <= max_date), ]
     data_plot$Italia <- data_plot$Italia / max(data_plot$Italia) * 100
-    data_plot <- merge(gtrend_data, data_plot, all = T)
-  
-    dygraph(data_plot, main = paste("Nuovi positivi vs Google trend (sintomi covid)"), ylab = "Scala arbitraria (max 100)") %>%
+    gtrend <- dati_google_trends_nazionale()$livello
+    data_plot <- merge(gtrend, data_plot, all = TRUE)
+
+    dygraph(data_plot, main = paste("Nuovi positivi vs Google trend"), ylab = "Scala arbitraria (max 100)") %>%
       dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
   })
 
+  output$tassi_gtrends <- renderDygraph({
+    data_plot <- dati_positivi_regione()$crescita[, "Italia"]
+    data_plot <- data_plot[(index(data_plot) >= max_date - 180) & (index(data_plot) <= max_date), ]
+    gtrend <- dati_google_trends_nazionale()$crescita
+    data_plot <- merge(gtrend, data_plot, all = TRUE)
 
-  # ---- Tabelle
+    dygraph(data_plot, main = paste("Tasso di crescita (%) - Nuovi positivi vs Google trend"), ylab = "Tasso di crescita (%)") %>%
+      dyLimit(limit = 0, strokePattern = "dashed") %>%
+      dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
+  })
+
   output$tab_testo <- renderText({
     paste("Giorno considerato per le stime:", input$date[2])
   })
@@ -436,7 +475,7 @@ server <- function(input, output) {
     data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
     data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
     data_plot$seconda_dose <- as.numeric(data_plot$seconda_dose)
-    colnames(data_plot) <- c(paste("Vaccino -", regione), "Prima dose (%)", "Seconda dose (%)")
+    colnames(data_plot) <- c(paste("Vaccino -", regione), "Prima dose (% della popolazione)", "Seconda dose (% della popolazione)")
     datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>%
       formatRound(columns = 2:3, digits = 2)
   })
