@@ -52,6 +52,8 @@ data_prov$sigla[is.na(data_prov$sigla)] <- "NAP"
 data_prov <- data_prov[data_prov$provincia != "In fase di definizione/aggiornamento", ]
 data_prov <- data_prov[data_prov$provincia != "Fuori Regione / Provincia Autonoma", ]
 
+
+
 max_date <- max(data_reg$data)
 min_date <- min(data_reg$data)
 

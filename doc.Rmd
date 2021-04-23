@@ -25,7 +25,7 @@ Il codice sorgente di questa applicazione è disponibile su GitHub a [questo lin
 
 ### Metodologia
 
-Il **trend** è ottenuto tramite Kalman filter, stimato sulla scala logaritmica. Il ternd rappresenta una versione dei dati depurata dalle oscillazioni casuali e quindi è di più facile interpretazione. 
+Il **trend** è ottenuto tramite Kalman filter, stimato sulla scala logaritmica. Il trend rappresenta una versione dei dati depurata dalle oscillazioni casuali e quindi è di più facile interpretazione. 
 
 Il **tasso di crescita** invece rappresenta la variazione percentuale giornaliera del trend. Ad esempio, il tasso di crescita di oggi si calcola tramite la formula: 
 

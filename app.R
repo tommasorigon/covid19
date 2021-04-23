@@ -16,7 +16,7 @@ source("download_data.R")
 # Define UI --------------------------------------------------------------
 ui <- fluidPage(
   
-  theme = shinytheme("united"),
+  theme = shinytheme("journal"),
   
   navbarPage(
     "Report dati Covid-19 in Italia",
@@ -76,7 +76,7 @@ ui <- fluidPage(
             tabPanel(
               "Evoluzione epidemia",
               hr(),
-              HTML("<b> Nota</b>. I seguenti grafici fanno riferimento al <b>trend</b> ottenuto tramite <i>Kalman filter</i> e non ai valori osservati. Si consulti la documentazione per ulteriori informazioni sulla metodologia. "),
+              HTML("I seguenti grafici fanno riferimento al <b>trend</b> ottenuto tramite <i>Kalman filter</i> e non ai valori osservati. Si consulti la documentazione per ulteriori informazioni sulla metodologia. "),
               hr(),
               dygraphOutput("casi"),
               hr(),
@@ -96,6 +96,8 @@ ui <- fluidPage(
               hr(),
               HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends</b></a>, utilizzando la parola chiave 'sintomi covid'.
               <hr> Entrambe le serie storiche sono state opportunamente depurate tramite <i>Kalman filter</i>. Nel primo grafico le serie sono state riscalatate (ovvero divise per il massimo e moltiplicate per 100), per poter essere confrontabili. Attualmente sono disponibili solamente i <b> dati nazionali </b> degli ultimi 180 giorni. "),
+              hr(),
+              textInput("keyword", label = h4("Keyword google trends"), value = "Sintomi covid"),
               hr(),
               dygraphOutput("gtrends"),
               hr(),
@@ -147,7 +149,9 @@ ui <- fluidPage(
             tabPanel(
               "Evoluzione",
               hr(),
-              HTML("<b> Nota</b>. Il seguente grafico fa riferimento al <b>trend</b> ottenuto tramite <i>Kalman filter</i> e non ai valori osservati. Si consulti la documentazione per ulteriori informazioni sulla metodologia. "),
+              HTML("Il seguente grafico fa riferimento al <b>trend</b> ottenuto tramite <i>Kalman filter</i> e non ai valori osservati. Si consulti la documentazione per ulteriori informazioni sulla metodologia. "),
+              hr(),
+              HTML("<b> Vaccino J&J</b>. I dati a disposizione per il vaccino J&J sono ancora troppo esigui per poter stimare un trend. Il grafico corrispondente potrebbe quindi generare un errore. "),
               hr(),
               dygraphOutput("vaccini"),
               hr()
@@ -252,7 +256,7 @@ server <- function(input, output) {
 
     data_plot <- data_vacc_reg[id_vaccino, ]
     data_plot <- aggregate(cbind(dosi_totali) ~ data, sum, data = data_plot)
-    data_plot <- data_plot %>% transmute(data = data_plot$data, Italia = pmax(data_plot$dosi_totali, 0))
+    data_plot <- data_plot %>% transmute(data = data_plot$data, Italia = data_plot$dosi_totali)
 
     trend <- get_cmp(data_plot)
     list(
@@ -282,7 +286,7 @@ server <- function(input, output) {
   })
 
   dati_google_trends_nazionale <- reactive({
-    gtrend_data <- tibble(get_gtrend(keyword = "sintomi covid", region = "Italia", from = max_date - 180, to = max_date, output = "data.frame")) %>% transmute(date = date, Google = hits)
+    gtrend_data <- tibble(get_gtrend(keyword = input$keyword, region = "Italia", from = max_date - 180, to = max_date, output = "data.frame")) %>% transmute(date = date, Google = hits)
     trend <- get_cmp(gtrend_data)
     trend$livello <- trend$livello / max(trend$livello) * 100
 
@@ -328,7 +332,6 @@ server <- function(input, output) {
       data_plot <- dati_dosi_totali_regione()$livello[, input$region3]
     }
 
-    data_plot <- data_plot[(index(data_plot) >= input$date[1]) & (index(data_plot) <= input$date[2]), ]
     dygraph(data_plot, main = paste("Dosi totali giornaliere somministrate")) %>%
       dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
   })
@@ -453,6 +456,8 @@ server <- function(input, output) {
     }
 
     data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
+    data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
+    data_plot$seconda_dose <- as.numeric(data_plot$seconda_dose)
     colnames(data_plot) <- c(paste("Vaccino -", regione), "Prima dose", "Seconda dose", "Totale")
     datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t"))
   })
