@@ -167,7 +167,7 @@ ui <- fluidPage(
     tabPanel(
       "Documentazione",
       fluidRow(
-        includeMarkdown("doc.rmd")
+        withMathJax(includeMarkdown("doc.Rmd"))
       )
     )
   )
