@@ -4,6 +4,9 @@ output:
     theme: united
 ---
 
+### Autori
+
+Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti.
 
 ### I dati utilizzati
 
@@ -13,7 +16,7 @@ I dati originali relativi ai **nuovi positivi, decessi e pazienti in terapia int
 
 I dati relativi alle **vaccinazioni** sono resi disponibili dal Commissario straordinario per l'emergenza Covid-19 a questo link: <a href='https://github.com/italia/covid19-opendata-vaccini'>https://github.com/italia/covid19-opendata-vaccini</a>. 
 
-I dati relativi alla popolazione residente di regioni e province fanno riferimento al 1 Gennaio 2020 e sono disponibili sul [portale ISTAT](http://dati.istat.it/Index.aspx?QueryId=42869)
+I dati relativi alla **popolazione residente** di regioni e province fanno riferimento al 1 Gennaio 2020 e sono disponibili sul [portale ISTAT](http://dati.istat.it/Index.aspx?QueryId=42869).
 
 
 ### Il codice sorgente
@@ -29,3 +32,4 @@ Il **tasso di crescita** invece rappresenta la variazione percentuale giornalier
 $$
 \text{tasso di crescita (%)} = 100*\frac{\text{trend di oggi} - \text{trend di ieri}}{\text{trend di ieri}}.
 $$
+

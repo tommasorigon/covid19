@@ -93,7 +93,7 @@ ui <- fluidPage(
               "Google trends",
               hr(),
               HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends </b> </a>, utilizzando la parola chiave 'sintomi covid'. Entrambe le serie storiche sono state opportunamente depurate tramite Kalman filter e quindi riscalatate (ovvero divise per il massimo e moltiplicate per 100), per poter essere confrontabili.
-                   <hr> <b> Nota</b>. Per ragioni tecniche, attualmente sono disponibili solamente i dati nazionali degli ultimi 180 giorni. "),
+                   <hr> <b> Nota</b>. Attualmente sono disponibili solamente i <b> dati nazionali </b> degli ultimi 180 giorni. "),
               hr(),
               dygraphOutput("gtrends"),
               hr(),
@@ -383,7 +383,7 @@ server <- function(input, output) {
   })
 
   output$tab_testo <- renderText({
-    paste("Giorno considerato per le stime:", input$date[2])
+    paste("Giorno considerato per le stime: ", input$date[2], ". <b> Nota</b>. La seguente tabella riporta il numero di casi / decessi stimati tramite Kalman filter e non il valore osservato.", sep = "")
   })
 
   output$tabella <- renderDT({
