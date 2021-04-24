@@ -52,11 +52,12 @@ data_prov$sigla[is.na(data_prov$sigla)] <- "NAP"
 data_prov <- data_prov[data_prov$provincia != "In fase di definizione/aggiornamento", ]
 data_prov <- data_prov[data_prov$provincia != "Fuori Regione / Provincia Autonoma", ]
 
-
-
 max_date <- max(data_reg$data)
 min_date <- min(data_reg$data)
 
 data_reg <- merge(data_reg, pop_regioni, by.x = "regione", by.y = "Regione")
 data_prov <- merge(data_prov, pop_province, by.x = "provincia", by.y = "Provincia")
 data_vacc_reg <- merge(data_vacc_reg, pop_regioni, by.x = "regione", by.y = "Regione")
+
+# Escludo l'ultimo giorno --- tipicamente viene caricato per gradi e questo comporta confusione
+data_vacc_reg <- data_vacc_reg[data_vacc_reg$data < max(data_vacc_reg$data),]
