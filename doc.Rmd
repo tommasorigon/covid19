@@ -35,11 +35,11 @@ $$
 
 ### Metodologia (aspetti tecnici)
 
-Si assume che la serie storica $Y_t$ (ovvero i nuovi casi, decessi giornalieri e ricoveri in terapia intensiva) sia il frutto del prodotto di tre componenti: un livello (trend), una stagionalità e una componente di "rumore". In formula, scriveremo
+Si assume che la serie storica $Y_t$ (ovvero i nuovi casi, decessi giornalieri e ricoveri in terapia intensiva) sia il frutto del prodotto di tre componenti: un livello (trend), una stagionalità e una componente di "rumore". In formule, scriveremo
 $$
   Y_t = L_t \cdot S_t \cdot R_t,
 $$
-per ciascun giorno $t \in \mathbb{N}$. Utilizzando il logaritmo naturale possiamo scrivere quindi scrivere
+per ciascun giorno $t \in \mathbb{N}$. Utilizzando il logaritmo naturale possiamo quindi scrivere
 $$
   y_t = l_t + s_t + r_t,
 $$
@@ -66,11 +66,11 @@ $$
 $$
 dove $z_t$ è una quantità aleatoria a media zero e varianza $\sigma_z^2$. Si suppone inoltre che anche il fattore stagionale e il rumore evolgano nel tempo in modo casuale. Il primo nel modo seguente
 $$
-  s_{t+1} = s_{t} + s_{t-1} + \ldots s_{t-5} + w_t,
+  s_{t+1} = s_{t} + s_{t-1} + \ldots + s_{t-5} + w_t,
 $$
 dove $w_t$ è una quantità aleatoria a media zero e varianza $\sigma_w^2$. Il rumore $r_t$ è anch'essa una quantità aleatoria con media zero e varianza $\sigma_r^2$.
 
-La stima delle tre varianze avviene col metodo della massima verosimiglianza supponendo che le tre quantità aleatorie siano variabili aleatorie normali (e quindi $Y_t$ sia processo log-normale). Le quantità non osservabili $l_t$ e $b_t$ sono invece estratte per mezzo di procedure che minimizzano l'errore quadratico medio (*Kalman filter* e *Kalman smoother*). Gli algoritmi ci restituiscono le quantità
+La stima delle tre varianze avviene col metodo della massima verosimiglianza supponendo che le tre quantità aleatorie siano variabili aleatorie normali (e quindi $Y_t$ sia un processo log-normale). Le quantità non osservabili $l_t$ e $b_t$ sono invece estratte per mezzo di procedure che minimizzano l'errore quadratico medio (*Kalman filter* e *Kalman smoother*). Questi algoritmi ci restituiscono le quantità
 $$
   \hat{l}_t = \mathbb{E}\left( l_t \mid \text{dati} \right) \;\text{ e }\;
   \lambda_t = \text{var}\left( l_t \mid \text{dati} \right),
@@ -88,7 +88,7 @@ e quindi
 $$
   \mathbb{E}\left( B_t \mid \text{dati} \right) = \exp(\hat{b}_t + 0.5\beta_t).
 $$
-da cui stimiamo il **tasso di crescita netto**
+da cui stimiamo il **tasso di crescita netto** riportato nei grafici
 $$
   \exp(\hat{b}_t + 0.5\beta_t) - 1.
 $$
