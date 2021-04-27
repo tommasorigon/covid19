@@ -12,8 +12,8 @@ library(plotly)
 source("funzioni.R")
 
 # Carica dati di popolazione
-pop_province <- read.csv("province.csv")
-pop_regioni  <- read.csv("regioni.csv")
+pop_province <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/province.csv")
+pop_regioni  <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/regioni.csv")
 
 # Dati vaccini
 raw_vacc_regione <- jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.json")$data
@@ -90,7 +90,7 @@ ui <- fluidPage(
             selectInput(
               inputId = "region", label = strong("Seleziona regione"),
               choices = names(dt_reg$positivi)[-1], multiple = T,
-              selected = c("Lombardia", "Veneto")
+              selected = c("Lombardia", "Lazio", "Campania")
             )
           ),
           
@@ -99,7 +99,7 @@ ui <- fluidPage(
             selectInput(
               inputId = "prov", label = strong("Seleziona provincia"),
               choices = sort(names(dt_pro)[-1]), multiple = T,
-              selected = c("Milano", "Venezia")
+              selected = c("Milano", "Roma", "Napoli")
             ),
           ),
           hr(),
@@ -508,7 +508,7 @@ server <- function(input, output) {
                    x = `Crescita casi (%)`,
                    label = Provincia,
                    color = Selezione)) +
-        geom_text()
+        geom_text() + theme(legend.position = "none")
     }
     ggplotly(plt, dynamicTicks = TRUE)
   })
