@@ -12,8 +12,8 @@ library(plotly)
 source("funzioni.R")
 
 # Carica dati di popolazione
-pop_province <- read.csv("province.csv")
-pop_regioni  <- read.csv("regioni.csv")
+pop_province <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/province.csv")
+pop_regioni  <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/regioni.csv")
 
 # Dati vaccini
 raw_vacc_regione <- jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.json")$data
