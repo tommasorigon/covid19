@@ -124,7 +124,7 @@ ui <- fluidPage(
               "Google trends",
               hr(),
               HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends</b></a>, utilizzando la parola chiave 'sintomi covid'.
-              <hr> Entrambe le serie storiche sono state opportunamente depurate tramite <i>Kalman smoother</i>. Nel primo grafico le serie sono state riscalatate (ovvero divise per il massimo e moltiplicate per 100), per poter essere confrontabili. Attualmente sono disponibili solamente i <b> dati nazionali </b> degli ultimi 180 giorni. "),
+              <hr> Entrambe le serie storiche sono state opportunamente depurate tramite <i>Kalman smoother</i>. Nel primo grafico le serie sono state riscalatate (entrambe variano tra 0 e 100), per poter essere confrontabili. Attualmente sono disponibili solamente i <b> dati nazionali </b> degli ultimi 180 giorni. "),
               hr(),
               textInput("keyword", label = h4("Keyword google trends"), value = "Sintomi covid"),
               hr(),
@@ -260,7 +260,7 @@ server <- function(input, output) {
     ) %>%
       transmute(data = date, Google = hits)
     trend <- get_cmp(gtrend_data)
-    trend$livello[, -1] <- trend$livello[, -1] / max(trend$livello[, -1]) * 100
+    trend$livello[, -1] <- (trend$livello[, -1] - min(trend$livello[, -1])) / (max(trend$livello[, -1]) - min(trend$livello[, -1])) * 100
 
     list(
       livello = xts(trend$livello[, -1], trend$livello$data),
@@ -382,7 +382,7 @@ server <- function(input, output) {
       smo_reg_pos$livello$data >= max_date - 180,
       c("data", "Italia")
     ]
-    data_plot$Italia <- data_plot$Italia / max(data_plot$Italia) * 100
+    data_plot$Italia <- (data_plot$Italia - min(data_plot$Italia) )/ max(data_plot$Italia - min(data_plot$Italia)) * 100
     data_plot <- xts(data_plot$Italia, data_plot$data)
     gtrend <- dati_google_trends_nazionale()$livello
     data_plot <- cbind(Google = gtrend, Positivi = data_plot)
