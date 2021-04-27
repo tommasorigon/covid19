@@ -35,7 +35,7 @@ load_provincia <- function() {
     mutate(Italia = rowSums(.[, 2:108]))
 }
 
-load_vaccini <- function(){
+load_vaccini <- function() {
   raw_vacc_regione <- jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.json")$data
   data_vacc_reg <- data.frame(
     data = as.Date(strtrim(raw_vacc_regione$data_somministrazione, 10)),
