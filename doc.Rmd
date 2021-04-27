@@ -64,7 +64,7 @@ Assumiamo che il logaritmo del tasso lordo evolva come una passeggiata eleatoria
 $$
   b_{t+1} = b_t + z_t,
 $$
-dove $z_t$ è una quantità aleatoria a media zero e varianza $\sigma_z^2$. Si suppone inoltre che anche il fattore stagionale e il rumore evolgano nel tempo in modo casuale. Il primo nel modo seguente
+dove $z_t$ è una quantità aleatoria a media zero e varianza $\sigma_z^2$. Si suppone inoltre che anche il fattore stagionale (settimanale) e il rumore evolgano nel tempo in modo casuale. Il primo nel modo seguente
 $$
   s_{t+1} = s_{t} + s_{t-1} + \ldots + s_{t-5} + w_t,
 $$
