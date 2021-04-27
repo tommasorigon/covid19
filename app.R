@@ -369,7 +369,7 @@ server <- function(input, output) {
       ]
     }
 
-    data_plot <- xts(data_plot[, -1], data_plot$data)
+    data_plot <- xts(data_plot[, -1, drop = FALSE], data_plot$data)
     dygraph(data_plot,
       main = "Tasso di crescita giornaliero (%)", ylab = "Tasso di crescita giornaliero (%)"
     ) %>%
