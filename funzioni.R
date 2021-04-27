@@ -35,6 +35,25 @@ load_provincia <- function() {
     mutate(Italia = rowSums(.[, 2:108]))
 }
 
+load_vaccini <- function(){
+  raw_vacc_regione <- jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.json")$data
+  data_vacc_reg <- data.frame(
+    data = as.Date(strtrim(raw_vacc_regione$data_somministrazione, 10)),
+    regione = raw_vacc_regione$nome_area,
+    fornitore = raw_vacc_regione$fornitore,
+    prima_dose = raw_vacc_regione$prima_dose,
+    seconda_dose = raw_vacc_regione$seconda_dose,
+    dosi_totali = raw_vacc_regione$prima_dose + raw_vacc_regione$seconda_dose,
+    fascia_anagrafica = raw_vacc_regione$fascia_anagrafica
+  ) 
+  data_vacc_reg <- data_vacc_reg %>% filter(data < max(data))
+  data_vacc_reg$regione[data_vacc_reg$regione == "Provincia Autonoma Bolzano / Bozen"] <- "P.A. Bolzano"
+  data_vacc_reg$regione[data_vacc_reg$regione == "Provincia Autonoma Trento"] <- "P.A. Trento"
+  data_vacc_reg$regione[data_vacc_reg$regione == "Valle d'Aosta / Vallée d'Aoste"] <- "Valle d'Aosta"
+  data_vacc_reg$regione[data_vacc_reg$regione == "Friuli-Venezia Giulia"] <- "Friuli Venezia Giulia"
+  data_vacc_reg
+}
+
 # divide by population
 # x is a data.frame with dates in first column and time series in the next columns
 # pop is a data.frame with territory name and population

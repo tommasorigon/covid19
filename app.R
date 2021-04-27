@@ -15,22 +15,10 @@ source("funzioni.R")
 pop_province <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/province.csv")
 pop_regioni <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/regioni.csv")
 
-# Dati vaccini
-raw_vacc_regione <- jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.json")$data
-data_vacc_reg <- data.frame(
-  data = as.Date(strtrim(raw_vacc_regione$data_somministrazione, 10)),
-  regione = raw_vacc_regione$nome_area,
-  fornitore = raw_vacc_regione$fornitore,
-  prima_dose = raw_vacc_regione$prima_dose,
-  seconda_dose = raw_vacc_regione$seconda_dose,
-  dosi_totali = raw_vacc_regione$prima_dose + raw_vacc_regione$seconda_dose,
-  fascia_anagrafica = raw_vacc_regione$fascia_anagrafica
-) 
-data_vacc_reg <- data_vacc_reg %>% filter(data < max(data))
-
 # Carica dati regionali e provinciali
 dt_reg <- load_regione()
 dt_pro <- load_provincia()
+dt_vacc <- load_vaccini()
 
 # dati di riferimento
 max_date <- max(dt_reg$positivi$data)
@@ -165,14 +153,14 @@ ui <- fluidPage(
           ),
           selectInput(
             inputId = "vaccine", label = strong("Seleziona vaccino"),
-            choices = c("Tutti", unique(data_vacc_reg$fornitore)),
+            choices = c("Tutti", unique(dt_vacc$fornitore)),
             selected = "Tutti"
           ),
           conditionalPanel(
             condition = "input.datatype2 == 'Regionale'",
             selectInput(
               inputId = "region3", label = strong("Seleziona regione"),
-              choices = unique(data_vacc_reg$regione),
+              choices = unique(dt_vacc$regione),
               selected = "Lombardia"
             )
           ),
@@ -226,12 +214,12 @@ server <- function(input, output) {
   dati_dosi_totali_nazionale <- reactive({
     vaccino <- input$vaccine
     if (vaccino != "Tutti") {
-      id_vaccino <- data_vacc_reg$fornitore %in% vaccino
+      id_vaccino <- dt_vacc$fornitore %in% vaccino
     } else {
-      id_vaccino <- rep(TRUE, nrow(data_vacc_reg))
+      id_vaccino <- rep(TRUE, nrow(dt_vacc))
     }
 
-    data_plot <- data_vacc_reg[id_vaccino, ]
+    data_plot <- dt_vacc[id_vaccino, ]
     data_plot <- aggregate(cbind(dosi_totali) ~ data, sum, data = data_plot)
     data_plot <- data_plot %>% transmute(data = data_plot$data, Italia = data_plot$dosi_totali)
 
@@ -245,12 +233,12 @@ server <- function(input, output) {
   dati_dosi_totali_regione <- reactive({
     vaccino <- input$vaccine
     if (vaccino != "Tutti") {
-      id_vaccino <- data_vacc_reg$fornitore %in% vaccino
+      id_vaccino <- dt_vacc$fornitore %in% vaccino
     } else {
-      id_vaccino <- rep(TRUE, nrow(data_vacc_reg))
+      id_vaccino <- rep(TRUE, nrow(dt_vacc))
     }
 
-    data_plot <- data_vacc_reg[data_vacc_reg$regione %in% input$region3 & id_vaccino, ]
+    data_plot <- dt_vacc[dt_vacc$regione %in% input$region3 & id_vaccino, ]
     data_plot <- aggregate(cbind(dosi_totali) ~ data + regione, sum, data = data_plot)
     data_plot$dosi_totali <- pmax(data_plot$dosi_totali, 0)
     data_plot <- data_plot %>% pivot_wider(id_cols = data, names_from = regione, values_from = dosi_totali, values_fill = 0)
@@ -540,11 +528,11 @@ server <- function(input, output) {
     regione <- input$region3
 
     if (input$datatype2 == "Regionale") {
-      data_plot <- data_vacc_reg[data_vacc_reg$regione == regione, ]
+      data_plot <- dt_vacc[dt_vacc$regione == regione, ]
       data_plot <- aggregate(cbind(prima_dose, seconda_dose, dosi_totali) ~ fornitore, sum, data = data_plot)
     } else if (input$datatype2 == "Nazionale") {
       regione <- "Italia"
-      data_plot <- data_vacc_reg
+      data_plot <- dt_vacc
       data_plot <- aggregate(cbind(prima_dose, seconda_dose, dosi_totali) ~ fornitore, sum, data = data_plot)
     }
 
@@ -566,11 +554,11 @@ server <- function(input, output) {
 
 
     if (input$datatype2 == "Regionale") {
-      data_plot <- data_vacc_reg[data_vacc_reg$regione == regione, ]
+      data_plot <- dt_vacc[dt_vacc$regione == regione, ]
       data_plot <- aggregate(cbind(prima_dose, seconda_dose) / K * 100 ~ fornitore, sum, data = data_plot)
     } else if (input$datatype2 == "Nazionale") {
       regione <- "Italia"
-      data_plot <- data_vacc_reg
+      data_plot <- dt_vacc
       data_plot <- aggregate(cbind(prima_dose, seconda_dose) / K * 100 ~ fornitore, sum, data = data_plot)
     }
 
