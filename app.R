@@ -127,7 +127,7 @@ ui <- fluidPage(
               hr(),
               conditionalPanel(
                 condition = "input.datatype == 'Nazionale'",
-                HTML("Non è possibile produrre il grafico se quando viene considerato il livello di aggregazione nazionale."),
+                HTML("Non è possibile produrre il grafico quando viene selezionato il livello di aggregazione nazionale."),
                 hr()),
               plotlyOutput("dispersione"),
               hr()
