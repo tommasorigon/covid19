@@ -10,7 +10,7 @@ Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-mar
 
 ### I dati utilizzati
 
-Questa applicazione fa uso di diverse fonti informative, che sono tutte di pubblico dominio. 
+Questa applicazione fa uso di diverse fonti informative di dominio pubblico, elencate nel seguito. 
 
 I dati originali relativi ai **nuovi positivi, decessi e pazienti in terapia intensiva** sono resi disponibili dal Dipartimento della protezione civile a questo link: [https://github.com/pcm-dpc/COVID-19](https://github.com/pcm-dpc/COVID-19). 
 
@@ -26,16 +26,15 @@ Il codice sorgente di questa applicazione è disponibile su GitHub a [questo lin
 ### Metodologia
 
 Il **trend** o **livello** è ottenuto tramite *Kalman smoother*, stimato sulla scala logaritmica. Il trend rappresenta una versione dei dati depurata dalle oscillazioni casuali e quindi è di più facile interpretazione. 
-
 Il **tasso di crescita** (netto) invece rappresenta la variazione percentuale giornaliera del trend. Ad esempio, il tasso di crescita di oggi si calcola tramite la formula: 
 
 $$
 \text{tasso di crescita (%)} = 100*\frac{\text{trend di oggi} - \text{trend di ieri}}{\text{trend di ieri}}.
 $$
 
-### Metodologia (aspetti tecnici)
+### Metodologia (descrizione tecnica dettagliata)
 
-Si assume che la serie storica $Y_t$ (ovvero i nuovi casi, decessi giornalieri e ricoveri in terapia intensiva) sia il frutto del prodotto di tre componenti: un livello (trend), una stagionalità e una componente di "rumore". In formule, scriveremo
+Si assume che la serie storica $Y_t$ (ovvero i nuovi casi, decessi giornalieri e ricoveri in terapia intensiva) sia il frutto del prodotto di tre componenti: un livello (trend), una stagionalità e una componente di "rumore". In formule, scriveremo quindi
 $$
   Y_t = L_t \cdot S_t \cdot R_t,
 $$
@@ -43,15 +42,15 @@ per ciascun giorno $t \in \mathbb{N}$. Utilizzando il logaritmo naturale possiam
 $$
   y_t = l_t + s_t + r_t,
 $$
-dove abbiamo posto per definizione $y_t = \log(Y_t)$, $l_t = \log(L_t)$, $s_t = \log(S_t)$ e $r_t = \log(R_t)$. Per costruzione, il **livello** al tempo $t+1$ è dato dal livello al tempo $t$ moltiplicato per un **tasso di crescita (lordo)** $B_t$, ovvero
+dove abbiamo posto $y_t = \log(Y_t)$, $l_t = \log(L_t)$, $s_t = \log(S_t)$ e $r_t = \log(R_t)$. Il livello al tempo $t+1$ è esprimibile come il livello al tempo $t$ moltiplicato per un **tasso di crescita (lordo)** $B_t$, ovvero
 $$
   L_{t+1} = B_t \cdot L_{t}.
 $$
-Quindi, se il valore $B_t$ è superiore a 1, il livello è in crescita, se $B_t$ è inferiore a 1, il livello sta scendendo. Il **tasso di crescita (netto)** è definito come 
+Quindi, se il valore $B_t$ è superiore a 1 allora il livello è in crescita, mentre se $B_t$ è inferiore a 1 allora il livello sta scendendo. Il **tasso di crescita (netto)** è invece definito come 
 $$
   B_t - 1 = \frac{L_{t+1}}{L_t} - 1 = \frac{L_{t+1} - L_t}{L_t}.
 $$
-Nei grafici riportati nella dashboard, si fa sempre riferimento ad **tasso di crescita netto**. Considerando quindi il logaritmo dell'equazione precedente, si ottiene
+Nei grafici riportati nella dashboard, si fa sempre riferimento ad il **tasso di crescita netto**. Considerando quindi il logaritmo dell'equazione precedente, si ottiene
 $$
   l_{t+1} = b_t + l_t,
 $$
@@ -64,31 +63,31 @@ Assumiamo che il logaritmo del tasso lordo evolva come una passeggiata eleatoria
 $$
   b_{t+1} = b_t + z_t,
 $$
-dove $z_t$ è una quantità aleatoria a media zero e varianza $\sigma_z^2$. Si suppone inoltre che anche il fattore stagionale (settimanale) e il rumore evolgano nel tempo in modo casuale. Il primo nel modo seguente
+dove $z_t$ è una quantità aleatoria gaussiana a media zero e varianza $\sigma_z^2$. Si suppone inoltre che anche il fattore stagionale (settimanale) e il rumore evolgano nel tempo in modo casuale. Nel primo caso, supponiamo che
 $$
   s_{t+1} = s_{t} + s_{t-1} + \ldots + s_{t-5} + w_t,
 $$
-dove $w_t$ è una quantità aleatoria a media zero e varianza $\sigma_w^2$. Il rumore $r_t$ è anch'essa una quantità aleatoria con media zero e varianza $\sigma_r^2$.
+dove $w_t$ è una quantità aleatoria gaussiana a media zero e varianza $\sigma_w^2$. Infine, il rumore $r_t$ è anch'essa una quantità aleatoria gaussiana con media zero e varianza $\sigma_r^2$.
 
-La stima delle tre varianze avviene col metodo della massima verosimiglianza supponendo che le tre quantità aleatorie siano variabili aleatorie normali (e quindi $Y_t$ sia un processo log-normale). Le quantità non osservabili $l_t$ e $b_t$ sono invece estratte per mezzo di procedure che minimizzano l'errore quadratico medio (*Kalman filter* e *Kalman smoother*). Questi algoritmi ci restituiscono le quantità
+La stima delle tre varianze $\sigma^2_z, \sigma^2_w, \sigma^2_r$ è ottenuta tramite il metodo della massima verosimiglianza supponendo che le tre quantità aleatorie siano variabili aleatorie normali. Di conseguenza, si noti che $Y_t$ segue un processo log-normale. Le quantità non osservabili $l_t$ e $b_t$ sono invece estratte per mezzo di procedure che minimizzano l'errore quadratico medio (*Kalman filter / smoother*). Supponendo di aver osservato i valori $y_1,\dots,y_T$, questi algoritmi ci restituiscono le stime
 $$
-  \hat{l}_t = \mathbb{E}\left( l_t \mid \text{dati} \right) \;\text{ e }\;
-  \lambda_t = \text{var}\left( l_t \mid \text{dati} \right),
+  \hat{l}_t = \mathbb{E}\left( l_t \mid y_1,\dots,y_T \right) \;\text{ e }\;
+  \lambda_t = \text{var}\left( l_t \mid y_1,\dots,y_T \right)
 $$
-e quindi la **stima del livello (trend)** $L_t$, sotto le ipotesi illustrate, è data da
+e quindi una **stima del livello (trend)** $L_t$, sotto le ipotesi illustrate, è data da
 $$
-  \mathbb{E}\left( L_t \mid \text{dati} \right) = \exp(\hat{l}_t + 0.5\lambda_t),
+  \mathbb{E}\left( L_t \mid y_1,\dots,y_T \right) = \exp(\hat{l}_t + 0.5\lambda_t),
 $$
 per le proprietà della distribuzione log-normale. Il *Kalman smoother* permette inoltre di ottenere
 $$
-  \hat{b}_t = \mathbb{E}\left( b_t \mid \text{dati} \right) \;\text{ e }\;
-  \beta_t = \text{var}\left( b_t \mid \text{dati} \right),
+  \hat{b}_t = \mathbb{E}\left( b_t \mid y_1,\dots,y_T \right) \;\text{ e }\;
+  \beta_t = \text{var}\left( b_t \mid y_1,\dots,y_T \right),
 $$
-e quindi
+da cui si deriva la stima per il **tasso di crescita (lordo)**, ovvero
 $$
-  \mathbb{E}\left( B_t \mid \text{dati} \right) = \exp(\hat{b}_t + 0.5\beta_t).
+  \mathbb{E}\left( B_t \mid y_1,\dots,y_T \right) = \exp(\hat{b}_t + 0.5\beta_t).
 $$
-da cui stimiamo il **tasso di crescita netto** riportato nei grafici
+Ovviamente, la stima del **tasso di crescita (netto)**, ovvero quella riportata riportato nei grafici, si può ottenere tramite l'equazione
 $$
-  \exp(\hat{b}_t + 0.5\beta_t) - 1.
+\mathbb{E}\left( B_t - 1 \mid y_1,\dots,y_T \right) =  \exp(\hat{b}_t + 0.5\beta_t) - 1.
 $$
