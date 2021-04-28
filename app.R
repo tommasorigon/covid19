@@ -41,7 +41,7 @@ smo_pro_pos <- smoother(dt_pro_pop, mod_pro)
 
 # Define UI --------------------------------------------------------------
 ui <- fluidPage(
-  theme = shinytheme("journal"),
+  theme = shinytheme("cosmo"),
   navbarPage(
     "Report dati Covid-19 in Italia",
 
