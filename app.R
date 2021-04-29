@@ -168,9 +168,9 @@ ui <- fluidPage(
         mainPanel(
           tabsetPanel(
             tabPanel(
-              "Evoluzione vaccinazione",
+              "Fasce d'età",
               hr(),
-              HTML("I valori riportati sono il numero cumulato di vaccinazioni. Per <b>ciclo vaccinale completo</b> si intende la somministrazione della seconda dose per i vaccini Pfizer, Astrazeneca, Moderna, oppure la prima dose del vaccino Janssen (J&J)."),
+              HTML("È riportato il numero cumulato di vaccinazioni effettuate. Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-15." ),
               hr(),
               dygraphOutput("vaccini"),
               hr(),
@@ -178,9 +178,9 @@ ui <- fluidPage(
               hr()
             ),
             tabPanel(
-              "Regioni (tabella)",
+              "Regioni",
               hr(),
-              HTML("Per <b>ciclo vaccinale completo</b> si intende la somministrazione della seconda dose per i vaccini Pfizer, Astrazeneca, Moderna, oppure la prima dose del vaccino Janssen (J&J)."),
+              HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-15."),
               hr(),
               DTOutput("tbl_reg"),
               hr()
