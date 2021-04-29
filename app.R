@@ -30,7 +30,7 @@ dt_reg_pop <- lapply(dt_reg, divide_by_pop, pop = pop_regioni)
 dt_pro_pop <- divide_by_pop(dt_pro, pop_province)
 
 dt_vacc_eta <- vaccini_eta(dt_vacc, pop_regioni_eta) 
-# dt_vacc_reg <- vaccini_eta(dt_vacc, pop_regioni_eta) 
+dt_vacc_reg <- vaccini_reg(dt_vacc, pop_regioni_eta) 
 
 # Carica modelli state-space
 load("modelli.Rdata") # mod_reg: lista con positivi, decessi, terapie_intensive con liste di modelli
@@ -180,9 +180,10 @@ ui <- fluidPage(
             tabPanel(
               "Regioni (tabella)",
               hr(),
-              HTML(" Le tabelle riportano il numero di vaccini somministrati (prima tabella) e la percentuale rispetto alla popolazione nazionale / regionale (seconda tabella)."),
+              HTML("Per <b>ciclo vaccinale completo</b> si intende la somministrazione della seconda dose per i vaccini Pfizer, Astrazeneca, Moderna, oppure la prima dose del vaccino Janssen (J&J)."),
               hr(),
-              hr(),
+              DTOutput("tbl_reg"),
+              hr()
             )
           )
         )
@@ -506,6 +507,10 @@ server <- function(input, output) {
     data_tbl <- t(data_tbl)[c(9,1:8,10),]
   
     datatable(data_tbl, rownames = T, options = list(pageLength = 22, dom = "t"))
+  })
+  
+  output$tbl_reg <- renderDT({
+    datatable(dt_vacc_reg, rownames = F, options = list(pageLength = 22, dom = "t"))
   })
 
   output$tbl <- renderDT({
