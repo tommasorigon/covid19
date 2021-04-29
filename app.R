@@ -153,7 +153,7 @@ ui <- fluidPage(
           selectInput(
             inputId = "eta", label = strong("Seleziona fascia anagrafica"),
             choices = c("Tutte", levels(dt_vacc$fascia_anagrafica)), multiple = T,
-            selected = c("Tutte")
+            selected = c("Tutte", "70-79", "80-89")
           ),
           selectInput(
             inputId = "dose", label = strong("Seleziona tipologia di dato"),
