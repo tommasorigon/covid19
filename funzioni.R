@@ -37,22 +37,52 @@ load_provincia <- function() {
 
 # load regional vaccine
 load_vaccini <- function() {
-  raw_vacc_regione <- jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.json")$data
-  data_vacc_reg <- data.frame(
-    data = as.Date(strtrim(raw_vacc_regione$data_somministrazione, 10)),
-    regione = raw_vacc_regione$nome_area,
-    fornitore = raw_vacc_regione$fornitore,
-    prima_dose = raw_vacc_regione$prima_dose,
-    seconda_dose = raw_vacc_regione$seconda_dose,
-    dosi_totali = raw_vacc_regione$prima_dose + raw_vacc_regione$seconda_dose,
-    fascia_anagrafica = raw_vacc_regione$fascia_anagrafica
+  dt <- tibble(jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.json")$data)
+  dt <- dt %>% mutate(
+    data = as.Date(strtrim(dt$data_somministrazione, 10)),
+    regione = dt$nome_area,
+    fornitore = dt$fornitore,
+    prima_dose = dt$prima_dose,
+    seconda_dose = dt$seconda_dose,
+    dosi_totali = dt$prima_dose + dt$seconda_dose,
+    fascia_anagrafica = factor(dt$fascia_anagrafica)
   ) 
-  data_vacc_reg <- data_vacc_reg %>% filter(data < max(data))
-  data_vacc_reg$regione[data_vacc_reg$regione == "Provincia Autonoma Bolzano / Bozen"] <- "P.A. Bolzano"
-  data_vacc_reg$regione[data_vacc_reg$regione == "Provincia Autonoma Trento"] <- "P.A. Trento"
-  data_vacc_reg$regione[data_vacc_reg$regione == "Valle d'Aosta / Vallée d'Aoste"] <- "Valle d'Aosta"
-  data_vacc_reg$regione[data_vacc_reg$regione == "Friuli-Venezia Giulia"] <- "Friuli Venezia Giulia"
-  data_vacc_reg
+  dt <- dt %>% filter(data < max(data))
+  dt$regione[dt$regione == "Provincia Autonoma Bolzano / Bozen"] <- "P.A. Bolzano"
+  dt$regione[dt$regione == "Provincia Autonoma Trento"] <- "P.A. Trento"
+  dt$regione[dt$regione == "Valle d'Aosta / Vallée d'Aoste"] <- "Valle d'Aosta"
+  dt$regione[dt$regione == "Friuli-Venezia Giulia"] <- "Friuli Venezia Giulia"
+  
+  dt <- dt %>% mutate(ciclo_concluso = seconda_dose) %>%
+    mutate(ciclo_concluso = replace(ciclo_concluso, fornitore == "Janssen", prima_dose[fornitore == "Janssen"]))
+}
+
+vaccini_eta <- function(dt, pop){
+  
+  pop_values <- (pop_regioni_eta %>% group_by(eta_class2) %>% summarise(popolazione = sum(popolazione)))$popolazione[c(3:10,2)]
+  pop_values <- c(pop_values, sum(pop_values))
+  
+  prima <- prima_int <- 
+    dt %>%
+    pivot_wider(data, names_from = fascia_anagrafica, values_from = prima_dose, values_fn = sum, values_fill = 0) %>%
+    mutate(Tutte = rowSums(.[, 2:10], na.rm = T))
+  
+  for (i in 2:ncol(prima)) {
+    prima[, i] <- cumsum(prima[, i]) / pop_values[i - 1] * 100
+    prima_int[, i] <- cumsum(prima_int[, i])
+  }
+
+  ciclo_concluso <- ciclo_concluso_int <-
+    dt %>%
+    pivot_wider(data, names_from = fascia_anagrafica, values_from = ciclo_concluso, values_fn = sum, values_fill = 0) %>%
+    mutate(Tutte = rowSums(.[, 2:10], na.rm = T))
+  
+  for (i in 2:ncol(ciclo_concluso)) {
+    ciclo_concluso[, i] <- cumsum(ciclo_concluso[, i]) / pop_values[i - 1] * 100
+    ciclo_concluso_int[, i] <- cumsum(ciclo_concluso_int[, i])
+  }
+  
+  list(prima = prima, prima_int = prima_int, ciclo_concluso = ciclo_concluso, ciclo_concluso_int = ciclo_concluso_int)
 }
 
 # divide by population

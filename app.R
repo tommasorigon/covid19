@@ -14,6 +14,7 @@ source("funzioni.R")
 # Carica dati di popolazione
 pop_province <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/province.csv")
 pop_regioni <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/regioni.csv")
+pop_regioni_eta <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/regioni_eta.csv")
 
 # Carica dati regionali e provinciali
 dt_reg <- load_regione()
@@ -27,6 +28,9 @@ min_date <- min(dt_reg$positivi$data)
 # normalizza rispetto a popolazione
 dt_reg_pop <- lapply(dt_reg, divide_by_pop, pop = pop_regioni)
 dt_pro_pop <- divide_by_pop(dt_pro, pop_province)
+
+dt_vacc_eta <- vaccini_eta(dt_vacc, pop_regioni_eta) 
+# dt_vacc_reg <- vaccini_eta(dt_vacc, pop_regioni_eta) 
 
 # Carica modelli state-space
 load("modelli.Rdata") # mod_reg: lista con positivi, decessi, terapie_intensive con liste di modelli
@@ -147,22 +151,14 @@ ui <- fluidPage(
       sidebarLayout(
         sidebarPanel(
           selectInput(
-            inputId = "datatype2", label = strong("Seleziona livello di aggregazione"),
-            choices = c("Nazionale", "Regionale"),
-            selected = "Nazionale"
+            inputId = "eta", label = strong("Seleziona fascia anagrafica"),
+            choices = c("Tutte", levels(dt_vacc$fascia_anagrafica)), multiple = T,
+            selected = c("Tutte")
           ),
           selectInput(
-            inputId = "vaccine", label = strong("Seleziona vaccino"),
-            choices = c("Tutti", unique(dt_vacc$fornitore)),
-            selected = "Tutti"
-          ),
-          conditionalPanel(
-            condition = "input.datatype2 == 'Regionale'",
-            selectInput(
-              inputId = "region3", label = strong("Seleziona regione"),
-              choices = unique(dt_vacc$regione),
-              selected = "Lombardia"
-            )
+            inputId = "dose", label = strong("Seleziona tipologia di dato"),
+            choices = c("Prima dose", "Ciclo vaccinale completo"),
+            selected = "Prima dose"
           ),
           hr(),
           HTML("Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti."),
@@ -174,22 +170,19 @@ ui <- fluidPage(
             tabPanel(
               "Evoluzione vaccinazione",
               hr(),
-              HTML("Il seguente grafico fa riferimento al <b>trend</b> ottenuto tramite <i>Kalman smoother</i> e non ai valori osservati. Si consulti la documentazione per ulteriori informazioni sulla metodologia. "),
-              hr(),
-              HTML("<b> Vaccino J&J</b>. I dati a disposizione per il vaccino J&J sono ancora troppo esigui per poter stimare un trend. Il grafico corrispondente potrebbe quindi generare un errore. "),
+              HTML("I valori riportati sono il numero cumulato di vaccinazioni. Per <b>ciclo vaccinale completo</b> si intende la somministrazione della seconda dose per i vaccini Pfizer, Astrazeneca, Moderna, oppure la prima dose del vaccino Janssen (J&J)."),
               hr(),
               dygraphOutput("vaccini"),
+              hr(),
+              DTOutput("tbl_eta"),
               hr()
             ),
             tabPanel(
-              "Tabelle riassuntive",
+              "Regioni (tabella)",
               hr(),
               HTML(" Le tabelle riportano il numero di vaccini somministrati (prima tabella) e la percentuale rispetto alla popolazione nazionale / regionale (seconda tabella)."),
               hr(),
-              DTOutput("tbl"),
               hr(),
-              DTOutput("tbl2"),
-              hr()
             )
           )
         )
@@ -212,41 +205,14 @@ ui <- fluidPage(
 server <- function(input, output) {
 
   dati_dosi_totali_nazionale <- reactive({
-    vaccino <- input$vaccine
-    if (vaccino != "Tutti") {
-      id_vaccino <- dt_vacc$fornitore %in% vaccino
-    } else {
-      id_vaccino <- rep(TRUE, nrow(dt_vacc))
-    }
 
-    data_plot <- dt_vacc[id_vaccino, ]
-    data_plot <- aggregate(cbind(dosi_totali) ~ data, sum, data = data_plot)
+    data_plot <- aggregate(cbind(prima_dose) ~ data, sum, data = dt_vacc)
     data_plot <- data_plot %>% transmute(data = data_plot$data, Italia = data_plot$dosi_totali)
 
     trend <- get_cmp(data_plot)
     list(
       livello = xts(trend$livello["Italia"], trend$livello$data),
       crescita = xts(trend$crescita["Italia"], trend$crescita$data)
-    )
-  })
-
-  dati_dosi_totali_regione <- reactive({
-    vaccino <- input$vaccine
-    if (vaccino != "Tutti") {
-      id_vaccino <- dt_vacc$fornitore %in% vaccino
-    } else {
-      id_vaccino <- rep(TRUE, nrow(dt_vacc))
-    }
-
-    data_plot <- dt_vacc[dt_vacc$regione %in% input$region3 & id_vaccino, ]
-    data_plot <- aggregate(cbind(dosi_totali) ~ data + regione, sum, data = data_plot)
-    data_plot$dosi_totali <- pmax(data_plot$dosi_totali, 0)
-    data_plot <- data_plot %>% pivot_wider(id_cols = data, names_from = regione, values_from = dosi_totali, values_fill = 0)
-
-    trend <- get_cmp(data_plot)
-    list(
-      livello = xts(trend$livello[input$region3], trend$livello$data),
-      crescita = xts(trend$crescita[input$region3], trend$crescita$data)
     )
   })
 
@@ -320,14 +286,22 @@ server <- function(input, output) {
   })
 
   output$vaccini <- renderDygraph({
-    if (input$datatype2 == "Nazionale") {
-      data_plot <- dati_dosi_totali_nazionale()$livello
-    } else if (input$datatype2 == "Regionale") {
-      data_plot <- dati_dosi_totali_regione()$livello
+    
+    if(input$dose == "Prima dose"){
+      data_plot <- dt_vacc_eta$prima
+    } else {
+      data_plot <- dt_vacc_eta$ciclo_concluso
     }
 
-    dygraph(data_plot, main = paste("Dosi totali giornaliere somministrate")) %>%
-      dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
+    data_plot <- xts(data_plot[input$eta], data_plot$data)
+    dygraph(data_plot,
+            main = paste("Popolazione vaccinata (%) -", input$dose),
+            ylab = paste("Popolazione vaccinata (%) -", input$dose)
+    ) %>%
+      dyOptions(
+        colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5,
+        fillGraph = TRUE, drawGrid = FALSE
+      )
   })
 
   output$tassi <- renderDygraph({
@@ -523,6 +497,16 @@ server <- function(input, output) {
     ggplotly(plt, dynamicTicks = TRUE, tooltip = c("x", "y", "label"), height = 500) %>% config(displayModeBar = F)
   })
 
+  output$tbl_eta <- renderDT({
+    data_tbl <- round(rbind(tail(dt_vacc_eta$prima_int, 1),
+                            tail(dt_vacc_eta$prima, 1),
+                            tail(dt_vacc_eta$ciclo_concluso_int, 1),
+                            tail(dt_vacc_eta$ciclo_concluso, 1))[, -1], 2)
+    rownames(data_tbl) <- c("Prima dose", "Prima dose (%)", "Ciclo vaccinale completo", "Ciclo vaccinale completo (%)")
+    data_tbl <- t(data_tbl)[c(9,1:8,10),]
+  
+    datatable(data_tbl, rownames = T, options = list(pageLength = 22, dom = "t"))
+  })
 
   output$tbl <- renderDT({
     regione <- input$region3
