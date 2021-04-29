@@ -205,18 +205,6 @@ ui <- fluidPage(
 # Define SERVER ---------------
 server <- function(input, output) {
 
-  dati_dosi_totali_nazionale <- reactive({
-
-    data_plot <- aggregate(cbind(prima_dose) ~ data, sum, data = dt_vacc)
-    data_plot <- data_plot %>% transmute(data = data_plot$data, Italia = data_plot$dosi_totali)
-
-    trend <- get_cmp(data_plot)
-    list(
-      livello = xts(trend$livello["Italia"], trend$livello$data),
-      crescita = xts(trend$crescita["Italia"], trend$crescita$data)
-    )
-  })
-
   dati_google_trends_nazionale <- reactive({
     gtrend_data <- get_gtrend(
       keyword = input$keyword,
@@ -513,51 +501,51 @@ server <- function(input, output) {
     datatable(dt_vacc_reg, rownames = F, options = list(pageLength = 22, dom = "t"))
   })
 
-  output$tbl <- renderDT({
-    regione <- input$region3
-
-    if (input$datatype2 == "Regionale") {
-      data_plot <- dt_vacc[dt_vacc$regione == regione, ]
-      data_plot <- aggregate(cbind(prima_dose, seconda_dose, dosi_totali) ~ fornitore, sum, data = data_plot)
-    } else if (input$datatype2 == "Nazionale") {
-      regione <- "Italia"
-      data_plot <- dt_vacc
-      data_plot <- aggregate(cbind(prima_dose, seconda_dose, dosi_totali) ~ fornitore, sum, data = data_plot)
-    }
-
-    data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
-    data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
-    data_plot$seconda_dose <- as.numeric(data_plot$seconda_dose)
-    colnames(data_plot) <- c(paste("Vaccino -", regione), "Prima dose", "Seconda dose", "Totale")
-    datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t"))
-  })
-
-  output$tbl2 <- renderDT({
-    regione <- input$region3
-
-    if (input$datatype2 == "Regionale") {
-      K <- pop_regioni$Pop[pop_regioni$Regione == regione]
-    } else if (input$datatype2 == "Nazionale") {
-      K <- sum(pop_regioni$Pop)
-    }
-
-
-    if (input$datatype2 == "Regionale") {
-      data_plot <- dt_vacc[dt_vacc$regione == regione, ]
-      data_plot <- aggregate(cbind(prima_dose, seconda_dose) / K * 100 ~ fornitore, sum, data = data_plot)
-    } else if (input$datatype2 == "Nazionale") {
-      regione <- "Italia"
-      data_plot <- dt_vacc
-      data_plot <- aggregate(cbind(prima_dose, seconda_dose) / K * 100 ~ fornitore, sum, data = data_plot)
-    }
-
-    data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
-    data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
-    data_plot$seconda_dose <- as.numeric(data_plot$seconda_dose)
-    colnames(data_plot) <- c(paste("Vaccino -", regione), "Prima dose (% della popolazione)", "Seconda dose (% della popolazione)")
-    datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>%
-      formatRound(columns = 2:3, digits = 2)
-  })
+  # output$tbl <- renderDT({
+  #   regione <- input$region3
+  # 
+  #   if (input$datatype2 == "Regionale") {
+  #     data_plot <- dt_vacc[dt_vacc$regione == regione, ]
+  #     data_plot <- aggregate(cbind(prima_dose, seconda_dose, dosi_totali) ~ fornitore, sum, data = data_plot)
+  #   } else if (input$datatype2 == "Nazionale") {
+  #     regione <- "Italia"
+  #     data_plot <- dt_vacc
+  #     data_plot <- aggregate(cbind(prima_dose, seconda_dose, dosi_totali) ~ fornitore, sum, data = data_plot)
+  #   }
+  # 
+  #   data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
+  #   data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
+  #   data_plot$seconda_dose <- as.numeric(data_plot$seconda_dose)
+  #   colnames(data_plot) <- c(paste("Vaccino -", regione), "Prima dose", "Seconda dose", "Totale")
+  #   datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t"))
+  # })
+  # 
+  # output$tbl2 <- renderDT({
+  #   regione <- input$region3
+  # 
+  #   if (input$datatype2 == "Regionale") {
+  #     K <- pop_regioni$Pop[pop_regioni$Regione == regione]
+  #   } else if (input$datatype2 == "Nazionale") {
+  #     K <- sum(pop_regioni$Pop)
+  #   }
+  # 
+  # 
+  #   if (input$datatype2 == "Regionale") {
+  #     data_plot <- dt_vacc[dt_vacc$regione == regione, ]
+  #     data_plot <- aggregate(cbind(prima_dose, seconda_dose) / K * 100 ~ fornitore, sum, data = data_plot)
+  #   } else if (input$datatype2 == "Nazionale") {
+  #     regione <- "Italia"
+  #     data_plot <- dt_vacc
+  #     data_plot <- aggregate(cbind(prima_dose, seconda_dose) / K * 100 ~ fornitore, sum, data = data_plot)
+  #   }
+  # 
+  #   data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
+  #   data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
+  #   data_plot$seconda_dose <- as.numeric(data_plot$seconda_dose)
+  #   colnames(data_plot) <- c(paste("Vaccino -", regione), "Prima dose (% della popolazione)", "Seconda dose (% della popolazione)")
+  #   datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>%
+  #     formatRound(columns = 2:3, digits = 2)
+  # })
 }
 
 # Run the application
