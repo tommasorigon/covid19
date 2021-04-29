@@ -297,7 +297,7 @@ server <- function(input, output) {
     data_plot <- xts(data_plot[input$eta], data_plot$data)
     dygraph(data_plot,
             main = paste("Popolazione vaccinata (%) -", input$dose),
-            ylab = paste("Popolazione vaccinata (%) -", input$dose)
+            ylab = paste("Popolazione vaccinata (%)")
     ) %>%
       dyOptions(
         colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5,

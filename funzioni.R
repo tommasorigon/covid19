@@ -47,7 +47,7 @@ load_vaccini <- function() {
     dosi_totali = dt$prima_dose + dt$seconda_dose,
     fascia_anagrafica = factor(dt$fascia_anagrafica)
   ) 
-  dt <- dt %>% filter(data < max(data))
+  # dt <- dt %>% filter(data < max(data))
   dt$regione[dt$regione == "Provincia Autonoma Bolzano / Bozen"] <- "P.A. Bolzano"
   dt$regione[dt$regione == "Provincia Autonoma Trento"] <- "P.A. Trento"
   dt$regione[dt$regione == "Valle d'Aosta / Vallée d'Aoste"] <- "Valle d'Aosta"
