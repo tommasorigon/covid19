@@ -59,7 +59,7 @@ load_vaccini <- function() {
 
 vaccini_eta <- function(dt, pop){
   
-  pop_values <- (pop_regioni_eta %>% group_by(eta_class2) %>% summarise(popolazione = sum(popolazione)))$popolazione[c(3:10,2)]
+  pop_values <- (pop %>% group_by(eta_class2) %>% summarise(popolazione = sum(popolazione)))$popolazione[c(3:10,2)]
   pop_values <- c(pop_values, sum(pop_values))
   
   prima <- prima_int <- 
@@ -87,7 +87,7 @@ vaccini_eta <- function(dt, pop){
 
 vaccini_reg <- function(dt, pop){
   
-  pop_values <- (pop_regioni_eta %>% filter(eta_class2 != "0-15") %>% group_by(regione) %>% summarise(popolazione = sum(popolazione)))$popolazione
+  pop_values <- (pop %>% filter(eta_class2 != "0-15") %>% group_by(regione) %>% summarise(popolazione = sum(popolazione)))$popolazione
 
   dt <- dt %>% group_by(regione) %>%
     summarize(prima_dose = sum(prima_dose), ciclo_concluso = sum(ciclo_concluso)) %>% 
