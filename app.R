@@ -494,11 +494,11 @@ server <- function(input, output) {
     rownames(data_tbl) <- c("Prima dose", "Prima dose (%)", "Ciclo vaccinale completo", "Ciclo vaccinale completo (%)")
     data_tbl <- t(data_tbl)[c(9,1:8,10),]
   
-    datatable(data_tbl, rownames = T, options = list(pageLength = 22, dom = "t"))
+    datatable(data_tbl, rownames = T, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(1,3), digits = 0, interval = 3, mark = ",")
   })
   
   output$tbl_reg <- renderDT({
-    datatable(dt_vacc_reg, rownames = F, options = list(pageLength = 22, dom = "t"))
+    datatable(dt_vacc_reg, rownames = F, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(2,3,5), digits = 0, interval = 3, mark = ",")
   })
 
   # output$tbl <- renderDT({
