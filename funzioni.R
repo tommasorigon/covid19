@@ -92,8 +92,8 @@ vaccini_reg <- function(dt, pop){
   dt <- dt %>% group_by(regione) %>%
     summarize(prima_dose = sum(prima_dose), ciclo_concluso = sum(ciclo_concluso)) %>% 
     mutate(popolazione = pop_values) %>%
-    mutate(prima_dose_perc = round(prima_dose / pop_values, 2)) %>%
-    mutate(ciclo_concluso_perc = round(ciclo_concluso / pop_values, 2))
+    mutate(prima_dose_perc = round(prima_dose / pop_values * 100, 2)) %>%
+    mutate(ciclo_concluso_perc = round(ciclo_concluso / pop_values * 100, 2))
   dt <- dt[c(1,4,2,5,3,6)]
   colnames(dt) <- c("Regione", "Popolazione", "Prima dose", "Prima dose (%)", "Ciclo vaccinale concluso", "Ciclo vaccinale concluso (%)")
   dt
