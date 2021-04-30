@@ -184,6 +184,15 @@ ui <- fluidPage(
               hr(),
               DTOutput("tbl_reg"),
               hr()
+            ),
+            tabPanel(
+              "Tipologia vaccino",
+              hr(),
+              HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-15."),
+              hr(),
+              DTOutput("tbl_vacc1"),
+              hr(),
+              DTOutput("tbl_vacc2")
             )
           )
         )
@@ -487,65 +496,46 @@ server <- function(input, output) {
   })
 
   output$tbl_eta <- renderDT({
-    data_tbl <- round(rbind(tail(dt_vacc_eta$prima_int, 1),
+    data_tbl <- rbind(tail(dt_vacc_eta$prima_int, 1),
                             tail(dt_vacc_eta$prima, 1),
                             tail(dt_vacc_eta$ciclo_concluso_int, 1),
-                            tail(dt_vacc_eta$ciclo_concluso, 1))[, -1], 2)
-    rownames(data_tbl) <- c("Prima dose", "Prima dose (%)", "Ciclo vaccinale completo", "Ciclo vaccinale completo (%)")
-    data_tbl <- t(data_tbl)[c(9,1:8,10),]
+                            tail(dt_vacc_eta$ciclo_concluso, 1))[, -1]
+    data_tbl <- data.frame(t(data_tbl)[c(9,1:8,10),])
+    colnames(data_tbl) <- c("Prima dose", "Prima dose (%)", "Ciclo vaccinale completo", "Ciclo vaccinale completo (%)")
+    data_tbl$Popolazione <- data_tbl$`Prima dose` / data_tbl$`Prima dose (%)` * 100
+    data_tbl <- data_tbl[, c(5, 1:4)]
   
-    datatable(data_tbl, rownames = T, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(1,3), digits = 0, interval = 3, mark = ",")
+    datatable(data_tbl, rownames = T, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(1, 2, 4), digits = 0, interval = 3, mark = ",") %>% formatRound(columns = c(3, 5), digits = 2)
   })
   
   output$tbl_reg <- renderDT({
-    datatable(dt_vacc_reg, rownames = F, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(2,3,5), digits = 0, interval = 3, mark = ",")
+    datatable(dt_vacc_reg, rownames = F, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(2,3,5), digits = 0, interval = 3, mark = ",") %>% formatRound(columns = c(4, 6), digits = 2)
   })
 
-  # output$tbl <- renderDT({
-  #   regione <- input$region3
-  # 
-  #   if (input$datatype2 == "Regionale") {
-  #     data_plot <- dt_vacc[dt_vacc$regione == regione, ]
-  #     data_plot <- aggregate(cbind(prima_dose, seconda_dose, dosi_totali) ~ fornitore, sum, data = data_plot)
-  #   } else if (input$datatype2 == "Nazionale") {
-  #     regione <- "Italia"
-  #     data_plot <- dt_vacc
-  #     data_plot <- aggregate(cbind(prima_dose, seconda_dose, dosi_totali) ~ fornitore, sum, data = data_plot)
-  #   }
-  # 
-  #   data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
-  #   data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
-  #   data_plot$seconda_dose <- as.numeric(data_plot$seconda_dose)
-  #   colnames(data_plot) <- c(paste("Vaccino -", regione), "Prima dose", "Seconda dose", "Totale")
-  #   datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t"))
-  # })
-  # 
-  # output$tbl2 <- renderDT({
-  #   regione <- input$region3
-  # 
-  #   if (input$datatype2 == "Regionale") {
-  #     K <- pop_regioni$Pop[pop_regioni$Regione == regione]
-  #   } else if (input$datatype2 == "Nazionale") {
-  #     K <- sum(pop_regioni$Pop)
-  #   }
-  # 
-  # 
-  #   if (input$datatype2 == "Regionale") {
-  #     data_plot <- dt_vacc[dt_vacc$regione == regione, ]
-  #     data_plot <- aggregate(cbind(prima_dose, seconda_dose) / K * 100 ~ fornitore, sum, data = data_plot)
-  #   } else if (input$datatype2 == "Nazionale") {
-  #     regione <- "Italia"
-  #     data_plot <- dt_vacc
-  #     data_plot <- aggregate(cbind(prima_dose, seconda_dose) / K * 100 ~ fornitore, sum, data = data_plot)
-  #   }
-  # 
-  #   data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
-  #   data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
-  #   data_plot$seconda_dose <- as.numeric(data_plot$seconda_dose)
-  #   colnames(data_plot) <- c(paste("Vaccino -", regione), "Prima dose (% della popolazione)", "Seconda dose (% della popolazione)")
-  #   datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>%
-  #     formatRound(columns = 2:3, digits = 2)
-  # })
+  output$tbl_vacc1 <- renderDT({
+
+    data_plot <- aggregate(cbind(prima_dose, ciclo_concluso, dosi_totali) ~ fornitore, sum, data = dt_vacc)
+    data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
+    data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
+    data_plot$ciclo_concluso <- as.numeric(data_plot$ciclo_concluso)
+    data_plot$dosi_totali <- as.numeric(data_plot$dosi_totali)
+    colnames(data_plot) <- c("Vaccino", "Prima dose",  "Ciclo vaccinale completo", "Dosi somministrate")
+    datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(2:4), digits = 0, interval = 3, mark = ",")
+  })
+
+  output$tbl_vacc2 <- renderDT({
+    
+    pop <- sum(pop_regioni_eta$popolazione[pop_regioni_eta$eta_class2 != "0-15"])
+    
+    data_plot <- aggregate(cbind(prima_dose, ciclo_concluso) ~ fornitore, sum, data = dt_vacc)
+    data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
+    
+    data_plot$prima_dose <- as.numeric(data_plot$prima_dose) / pop * 100
+    data_plot$ciclo_concluso <- as.numeric(data_plot$ciclo_concluso)/ pop * 100
+    
+    colnames(data_plot) <- c("Vaccino", "Prima dose (% della popolazione)",  "Ciclo vaccinale completo (% della popolazione)")
+    datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = 2:3, digits = 2, mark = ",")
+  })
 }
 
 # Run the application
