@@ -127,8 +127,8 @@ ui <- fluidPage(
             tabPanel(
               "Google trends",
               hr(),
-              HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends</b></a>, utilizzando la parola chiave 'sintomi covid'.
-              <hr> Entrambe le serie storiche sono state opportunamente depurate tramite <i>Kalman smoother</i>. Nel primo grafico le serie sono state riscalatate (entrambe variano tra 0 e 100), per poter essere confrontabili. Attualmente sono disponibili solamente i <b> dati nazionali </b> degli ultimi 180 giorni. "),
+              HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends</b></a>, utilizzando la parola chiave 'sintomi covid' (modificabile).
+              <hr> Entrambe le serie storiche sono state opportunamente depurate tramite <i>Kalman smoother</i>. Nel primo grafico le serie sono state riscalatate (entrambe variano tra 0 e 100), per poter essere confrontabili. Sono disponibili solamente i <b> dati nazionali </b> e i <b> dati regionali </b> degli ultimi 180 giorni. Le ricerche Google sono informative solo per le regioni più grandi."),
               hr(),
               textInput("keyword", label = h4("Keyword google trends"), value = "Sintomi covid"),
               hr(),
@@ -217,18 +217,18 @@ server <- function(input, output) {
   dati_google_trends_nazionale <- reactive({
     gtrend_data <- get_gtrend(
       keyword = input$keyword,
-      region = "Italia",
+      region = if (input$datatype == "Regionale") input$region[1] else "Italia",
       from = max_date - 180,
       to = max_date,
       output = "data.frame"
-    ) %>%
-      transmute(data = date, Google = hits)
+    )
+    gtrend_data <- gtrend_data %>% select(date, Google = hits)
     trend <- get_cmp(gtrend_data)
-    trend$livello[, -1] <- (trend$livello[, -1] - min(trend$livello[, -1])) / (max(trend$livello[, -1]) - min(trend$livello[, -1])) * 100
+    trend$livello <- trend$livello %>% mutate_at(-1, min_max_norm)
 
     list(
-      livello = xts(trend$livello[, -1], trend$livello$data),
-      crescita = xts(trend$crescita[, -1], trend$crescita$data)
+      livello  = xts(trend$livello[, -1,  drop = F], trend$livello[, 1]),
+      crescita = xts(trend$crescita[, -1, drop = F], trend$crescita[, 1])
     )
   })
 
@@ -350,29 +350,41 @@ server <- function(input, output) {
   })
 
   output$gtrends <- renderDygraph({
-    data_plot <- smo_reg_pos$livello[
-      smo_reg_pos$livello$data >= max_date - 180,
-      c("data", "Italia")
+    territorio <- if (input$datatype == "Regionale") input$region[1] else "Italia"
+    smo <- switch(input$type,
+                  `Nuovi positivi` = smo_reg_pos,
+                  `Decessi` = smo_reg_dec,
+                  smo_reg_icu)
+    
+    data_plot <- smo$livello[
+      smo$livello$data >= max_date - 180,
+      c("data", territorio)
     ]
-    data_plot$Italia <- (data_plot$Italia - min(data_plot$Italia) )/ max(data_plot$Italia - min(data_plot$Italia)) * 100
-    data_plot <- xts(data_plot$Italia, data_plot$data)
-    gtrend <- dati_google_trends_nazionale()$livello
-    data_plot <- cbind(Google = gtrend, Positivi = data_plot)
 
-    dygraph(data_plot, main = paste("Nuovi positivi vs Google trend"), ylab = "Scala arbitraria (min 0, max 100)") %>%
+    data_plot <- data_plot %>% mutate_at(-1, min_max_norm)
+    data_plot <- cbind(xts(data_plot[, -1, drop = FALSE], data_plot[, 1]),
+                       dati_google_trends_nazionale()$livello)
+    titolo <- paste(input$type, "vs Google trend")
+    dygraph(data_plot, main = titolo, ylab = "Scala arbitraria (min 0, max 100)") %>%
       dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
   })
 
   output$tassi_gtrends <- renderDygraph({
-    data_plot <- smo_reg_pos$crescita[
-      smo_reg_pos$crescita$data >= max_date - 180,
-      c("data", "Italia")
+    territorio <- if (input$datatype == "Regionale") input$region[1] else "Italia"
+    smo <- switch(input$type,
+                  `Nuovi positivi` = smo_reg_pos,
+                  `Decessi` = smo_reg_dec,
+                  smo_reg_icu)
+    
+    data_plot <- smo$crescita[
+      smo$crescita$data >= max_date - 180,
+      c("data", territorio)
     ]
-    gtrend <- dati_google_trends_nazionale()$crescita
-    data_plot <- xts(data_plot$Italia, data_plot$data)
-    data_plot <- cbind(Google = gtrend, Positivi = data_plot)
-
-    dygraph(data_plot, main = paste("Tasso di crescita (%) - Nuovi positivi vs Google trend"), ylab = "Tasso di crescita (%)") %>%
+    
+    data_plot <- cbind(xts(data_plot[, -1, drop = FALSE], data_plot[, 1]),
+                       dati_google_trends_nazionale()$crescita)
+    titolo <- paste("Tasso di crescita (%)", input$type, "vs Google trend")
+    dygraph(data_plot, main = titolo, ylab = "Tasso di crescita (%)") %>%
       dyLimit(limit = 0, strokePattern = "dashed") %>%
       dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
   })

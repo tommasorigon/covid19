@@ -229,3 +229,7 @@ get_cmp <- function(x) {
     crescita = cbind(data = x[[1]], as_tibble(rates * 100))
   )
 }
+
+min_max_norm <- function(x, mult = 100) {
+  (x - min(x)) / (max(x) - min(x)) * mult
+}
