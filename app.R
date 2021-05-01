@@ -170,11 +170,19 @@ ui <- fluidPage(
             tabPanel(
               "Fasce d'età",
               hr(),
-              HTML("È riportato il numero cumulato di vaccinazioni effettuate. Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-15." ),
+              HTML("Nel grafico sottostante è riportato il numero cumulato percentuale di vaccinazioni effettuate (dato grezzo). Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-15."),
               hr(),
               dygraphOutput("vaccini"),
               hr(),
               DTOutput("tbl_eta"),
+              hr()
+            ),
+            tabPanel(
+              "Somministrazioni giornaliere",
+              hr(),
+              HTML("Nel grafico sottostante è riportato il <b>numero giornaliero di dosi somministrate</b> a livello nazionale (dato grezzo), indipendentemente dalla tipologia di vaccino, dalle fasce d'età  e considerando sia le prime dosi che le seconde dosi. L'obiettivo dichiarato dal commissario straordinario per l'emergenza Covid è di somministrare circa <b>500.000 dosi giornaliere.</b>" ),
+              hr(),
+              dygraphOutput("somministrazioni"),
               hr()
             ),
             tabPanel(
@@ -198,7 +206,7 @@ ui <- fluidPage(
         )
       )
     ),
-
+    
     # UI Documentazione -----------------------------------------
     tabPanel(
       "Documentazione",
@@ -301,6 +309,21 @@ server <- function(input, output) {
         fillGraph = TRUE, drawGrid = FALSE
       )
   })
+  
+  output$somministrazioni <- renderDygraph({
+    
+    data_plot <- aggregate(prima_dose + seconda_dose ~ data, sum, data = dt_vacc)
+    data_plot <- xts(tibble(`Dosi` = data_plot$`prima_dose + seconda_dose`), data_plot$data)
+    dygraph(data_plot,
+            main = paste("Dosi somministrate al giorno (Italia)"),
+            ylab = paste("Dosi somministrate")
+    ) %>% dyLimit(limit = 500000, strokePattern = "dashed") %>%
+      dyOptions(
+        colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5,
+        fillGraph = TRUE, drawGrid = FALSE
+      )
+  })
+  
 
   output$tassi <- renderDygraph({
     if (input$datatype == "Nazionale") {
