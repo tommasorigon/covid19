@@ -182,6 +182,8 @@ ui <- fluidPage(
               hr(),
               HTML("Nel grafico sottostante è riportato il <b>numero giornaliero di dosi somministrate</b> a livello nazionale (dato grezzo), indipendentemente dalla tipologia di vaccino, dalle fasce d'età  e considerando sia le prime dosi che le seconde dosi. L'obiettivo dichiarato dal commissario straordinario per l'emergenza Covid è di somministrare circa <b>500.000 dosi giornaliere.</b>" ),
               hr(),
+              HTML("I dati relativi all'ultimo giorno disponibile vanno interpretati con una certa cautela, perchè vengono resi pubblici ad orari diversi da regione a regione. I dati tipicamente si consolidano e diventano definitivi nell'arco di 24h." ),
+              hr(),
               dygraphOutput("somministrazioni"),
               hr()
             ),
