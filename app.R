@@ -127,7 +127,7 @@ ui <- fluidPage(
             tabPanel(
               "Google trends",
               hr(),
-              HTML("<b> Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends</b></a>, utilizzando la parola chiave 'sintomi covid' (modificabile).
+              HTML("<b>Sperimentale</b>. I grafici di questa sezione mettono a confronto le serie storiche dei nuovi positivi (a livello nazionale) e i dati relativi a <a href = 'https://trends.google.com/trends/?geo=US'> <b> Google trends</b></a>, utilizzando la parola chiave 'sintomi covid' (modificabile). Sebbene le correlazioni identificate siano molto suggestive, si raccomanda una certa cautela nella loro interpretazione; si veda ad esempio <a href ='https://science.sciencemag.org/content/343/6176/1203#aff-1'>questo articolo scientifico</a> riguardante Google Flu.
               <hr> Entrambe le serie storiche sono state opportunamente depurate tramite <i>Kalman smoother</i>. Nel primo grafico le serie sono state riscalatate (entrambe variano tra 0 e 100), per poter essere confrontabili. Sono disponibili solamente i <b> dati nazionali </b> e i <b> dati regionali </b> degli ultimi 180 giorni. Le ricerche Google sono informative solo per le regioni più grandi."),
               hr(),
               textInput("keyword", label = h4("Keyword google trends"), value = "Sintomi covid"),
