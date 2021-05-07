@@ -5,19 +5,19 @@ library(xts)
 library(dygraphs)
 library(DT)
 library(dplyr)
-library(readr)
 library(tidyr)
 library(gtrendsR)
 library(plotly)
+library(data.table)
 
 
 # Carica le funzioni utili
 source("funzioni.R")
 
 # Carica dati di popolazione
-pop_province <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/province.csv")
-pop_regioni <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/regioni.csv")
-pop_regioni_eta <- read_csv("https://raw.githubusercontent.com/tommasorigon/covid19/main/regioni_eta.csv")
+pop_province <- fread("https://raw.githubusercontent.com/tommasorigon/covid19/main/province.csv")
+pop_regioni <- fread("https://raw.githubusercontent.com/tommasorigon/covid19/main/regioni.csv")
+pop_regioni_eta <- fread("https://raw.githubusercontent.com/tommasorigon/covid19/main/regioni_eta.csv")
 
 # Carica dati regionali e provinciali
 dt_reg <- load_regione()

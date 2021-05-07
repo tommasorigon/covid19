@@ -2,14 +2,12 @@
 # load regional data
 load_regione <- function() {
   
-  dt <- read_csv("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv",   
-                 col_types = cols_only(
-                   data = col_datetime(format = ""),
-                   denominazione_regione = col_character(),
-                   nuovi_positivi = col_double(),
-                   terapia_intensiva = col_double(),
-                   deceduti = col_double()))
-  
+  dt <- fread("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv",
+              select = c(data = "character",
+                         denominazione_regione = "character",
+                         nuovi_positivi = "double",
+                         terapia_intensiva = "double",
+                         deceduti = "double"))
   dt$data <- as.Date(dt$data)
   pos <-
     dt %>%
@@ -30,11 +28,10 @@ load_regione <- function() {
 
 # load province data
 load_provincia <- function() {
-  dt <- read_csv("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-province/dpc-covid19-ita-province.csv",   
-                 col_types = cols_only(
-                   data = col_datetime(format = ""),
-                   denominazione_provincia = col_character(),
-                   totale_casi = col_double()))
+  dt <- fread("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-province/dpc-covid19-ita-province.csv",
+              select = c(data = "character",
+                         denominazione_provincia = "character",
+                         totale_casi = "double"))
   dt$data <- as.Date(dt$data)
   dt %>%
     filter(denominazione_provincia != "In fase di definizione/aggiornamento",
@@ -46,7 +43,7 @@ load_provincia <- function() {
 
 # load regional vaccine
 load_vaccini <- function() {
-  dt <- read_csv("https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv")
+  dt <- fread("https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv")
   dt <- dt %>% mutate(
     data = as.Date(strtrim(dt$data_somministrazione, 10)),
     regione = dt$nome_area,
