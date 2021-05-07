@@ -2,12 +2,12 @@
 # load regional data
 load_regione <- function() {
   
-  dt <- fread("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv",
+  dt <- fread("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv", 
               select = c(data = "character",
                          denominazione_regione = "character",
-                         nuovi_positivi = "double",
-                         terapia_intensiva = "double",
-                         deceduti = "double"))
+                         nuovi_positivi = "numeric",
+                         terapia_intensiva = "numeric",
+                         deceduti = "numeric"))
   dt$data <- as.Date(dt$data)
   pos <-
     dt %>%
