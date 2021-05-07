@@ -46,7 +46,7 @@ load_provincia <- function() {
 
 # load regional vaccine
 load_vaccini <- function() {
-  dt <- tibble(jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.json")$data)
+  dt <- read_csv("https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv")
   dt <- dt %>% mutate(
     data = as.Date(strtrim(dt$data_somministrazione, 10)),
     regione = dt$nome_area,
