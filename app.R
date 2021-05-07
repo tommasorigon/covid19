@@ -10,7 +10,6 @@ library(gtrendsR)
 library(plotly)
 library(data.table)
 
-
 # Carica le funzioni utili
 source("funzioni.R")
 
