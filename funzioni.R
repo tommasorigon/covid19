@@ -1,10 +1,15 @@
-library(tidyverse)
-library(KFAS)
-library(gtrendsR)
 
 # load regional data
 load_regione <- function() {
-  dt <- jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-regioni.json")
+  
+  dt <- read_csv("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv",   
+                 col_types = cols_only(
+                   data = col_datetime(format = ""),
+                   denominazione_regione = col_character(),
+                   nuovi_positivi = col_double(),
+                   terapia_intensiva = col_double(),
+                   deceduti = col_double()))
+  
   dt$data <- as.Date(dt$data)
   pos <-
     dt %>%
@@ -25,7 +30,11 @@ load_regione <- function() {
 
 # load province data
 load_provincia <- function() {
-  dt <- jsonlite::fromJSON(txt = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-province.json")
+  dt <- read_csv("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-province/dpc-covid19-ita-province.csv",   
+                 col_types = cols_only(
+                   data = col_datetime(format = ""),
+                   denominazione_provincia = col_character(),
+                   totale_casi = col_double()))
   dt$data <- as.Date(dt$data)
   dt %>%
     filter(denominazione_provincia != "In fase di definizione/aggiornamento",

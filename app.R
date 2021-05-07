@@ -5,8 +5,11 @@ library(xts)
 library(dygraphs)
 library(DT)
 library(dplyr)
+library(readr)
+library(tidyr)
 library(gtrendsR)
 library(plotly)
+
 
 # Carica le funzioni utili
 source("funzioni.R")
