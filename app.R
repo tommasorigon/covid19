@@ -4,7 +4,7 @@ library(KFAS)
 library(xts)
 library(dygraphs)
 library(DT)
-library(tidyverse)
+library(dplyr)
 library(gtrendsR)
 library(plotly)
 

@@ -145,8 +145,8 @@ smoother <- function(x, models) {
     mod$y <- as.matrix(y)
     attr(mod, "n") <- length(y)
     kfs <- KFS(mod, smoothing = "state", filtering = "none")
-    levels[, i] <- as.numeric(exp(kfs$alphahat[, 1] + 0.5 * kfs$V[1, 1, ])) - 1
-    levels[levels < 0] <- 0
+    levels[, i] <- pmax(0, as.numeric(exp(kfs$alphahat[, 1] + 0.5 * kfs$V[1, 1, ])) - 1)
+    # levels[levels < 0] <- 0
     # rates[, i] <- (levels[, i] - lag(levels[, i])) / lag(levels[, i]) #as.numeric(kfs$alphahat[, 2])
     rates[, i] <- as.numeric(exp(kfs$alphahat[, 2] + 0.5 * kfs$V[2, 2, ])) - 1
   }
