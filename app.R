@@ -89,6 +89,9 @@ ui <- fluidPage(
               selected = c("Milano", "Roma", "Napoli")
             ),
           ),
+          conditionalPanel(
+            condition = "input.type == 'Nuovi positivi'",
+            checkboxInput("R_t", "Visualizza la stima numero di riproduzione R_t basata sul tasso di crescita giornaliero. ", FALSE)),
           hr(),
           HTML("Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti."),
           hr(),
@@ -367,13 +370,23 @@ server <- function(input, output) {
         c("data", input$prov)
       ]
     }
-
-    data_plot <- xts(data_plot[, -1, drop = FALSE], data_plot$data)
-    dygraph(data_plot,
-      main = "Tasso di crescita giornaliero (%)", ylab = "Tasso di crescita giornaliero (%)"
-    ) %>%
-      dyLimit(limit = 0, strokePattern = "dashed") %>%
-      dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
+    
+    if(input$R_t & type == "Nuovi positivi"){
+      data_plot <- xts(r_t(data_plot[, -1, drop = FALSE]), data_plot$data)
+      p <- dygraph(data_plot,
+                   main = "Numero di riproduzione R_t", ylab = "R_t"
+      ) %>%
+        dyLimit(limit = 1, strokePattern = "dashed") %>%
+        dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
+    } else {
+      data_plot <- xts(data_plot[, -1, drop = FALSE], data_plot$data)
+      p <- dygraph(data_plot,
+        main = "Tasso di crescita giornaliero (%)", ylab = "Tasso di crescita giornaliero (%)"
+      ) %>%
+        dyLimit(limit = 0, strokePattern = "dashed") %>%
+        dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"), axisLineWidth = 1.5, fillGraph = TRUE, drawGrid = FALSE)
+    } 
+    p
   })
 
   output$gtrends <- renderDygraph({
@@ -426,15 +439,20 @@ server <- function(input, output) {
         Regione = "Italia",
         `Casi per 100k abitanti` = as.numeric(tail(smo_reg_pos$livello[, "Italia"], 1)),
         `Crescita casi (%)` = as.numeric(tail(smo_reg_pos$crescita[, "Italia"], 1)),
+        `Indice R_t` = r_t(as.numeric(tail(smo_reg_pos$crescita[, "Italia"], 1))),
         `Decessi per 100k abitanti` = as.numeric(tail(smo_reg_dec$livello[, "Italia"], 1)),
         `Crescita decessi (%)` = as.numeric(tail(smo_reg_dec$crescita[, "Italia"], 1)),
       ) %>%
         datatable(rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>%
         formatStyle(
-          columns = c(3, 5),
+          columns = c(3, 6),
           color = styleInterval(0, c("black", "red"))
         ) %>%
-        formatRound(columns = 2:5, digits = 2)
+        formatStyle(
+          columns = 4,
+          color = styleInterval(1, c("black", "red"))
+        ) %>%
+        formatRound(columns = 2:6, digits = 2)
     }
 
     if (input$datatype == "Regionale") {
@@ -442,15 +460,20 @@ server <- function(input, output) {
         Regione = colnames(smo_reg_pos$livello)[-1],
         `Casi per 100k abitanti` = as.numeric(tail(smo_reg_pos$livello[, -1], 1)),
         `Crescita casi (%)` = as.numeric(tail(smo_reg_pos$crescita[, -1], 1)),
+        `Indice R_t` = r_t(as.numeric(tail(smo_reg_pos$crescita[, -1], 1))),
         `Decessi per 100k abitanti` = as.numeric(tail(smo_reg_dec$livello[, -1], 1)),
         `Crescita decessi (%)` = as.numeric(tail(smo_reg_dec$crescita[, -1], 1)),
       ) %>%
         datatable(rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>%
         formatStyle(
-          columns = c(3, 5),
+          columns = c(3, 6),
           color = styleInterval(0, c("black", "red"))
         ) %>%
-        formatRound(columns = 2:5, digits = 2)
+        formatStyle(
+          columns = 4,
+          color = styleInterval(1, c("black", "red"))
+        ) %>%
+        formatRound(columns = 2:6, digits = 2)
     }
 
     if (input$datatype == "Provinciale") {
@@ -458,13 +481,18 @@ server <- function(input, output) {
         Provincia = colnames(smo_pro_pos$livello)[-1],
         `Casi per 100k abitanti` = as.numeric(tail(smo_pro_pos$livello[, -1], 1)),
         `Crescita casi (%)` = as.numeric(tail(smo_pro_pos$crescita[, -1], 1)),
+        `Indice R_t` = r_t(as.numeric(tail(smo_pro_pos$crescita[, -1], 1))),
       ) %>%
         datatable(rownames = FALSE, options = list(pageLength = 110, dom = "t")) %>%
         formatStyle(
-          columns = c(3, 3),
+          columns = 3,
           color = styleInterval(0, c("black", "red"))
         ) %>%
-        formatRound(columns = 2:3, digits = 2)
+        formatStyle(
+          columns = 4,
+          color = styleInterval(1, c("black", "red"))
+        ) %>%
+        formatRound(columns = 2:4, digits = 2)
     }
 
     dt

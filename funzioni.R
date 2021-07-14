@@ -239,3 +239,8 @@ get_cmp <- function(x) {
 min_max_norm <- function(x, mult = 100) {
   (x - min(x)) / (max(x) - min(x)) * mult
 }
+
+r_t <- function(x){
+  
+  (1 + x * 1.87 / 100)^3.57
+}

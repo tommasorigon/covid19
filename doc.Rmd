@@ -32,6 +32,14 @@ $$
 \text{tasso di crescita (%)} = 100*\frac{\text{trend di oggi} - \text{trend di ieri}}{\text{trend di ieri}}.
 $$
 
+L'indice di riproduzione $R_t$ è approssimato sulla base della seguente formula
+
+$$
+R_t \approx  (1 + \text{tasso di crescita}  *  1.87)^{3.57},
+$$
+
+proposta da [Bonifazi et al. (2021)](https://europepmc.org/backend/ptpmcrender.fcgi?accid=PMC8036245&blobtype=pdf) come approssimazione dell'indice $R_t$. 
+
 ### Metodologia (descrizione tecnica dettagliata)
 
 Si assume che la serie storica $Y_t$ (ovvero i nuovi casi, decessi giornalieri e ricoveri in terapia intensiva) sia il frutto del prodotto di tre componenti: un livello (trend), una stagionalità e una componente di "rumore". In formule, scriveremo quindi
