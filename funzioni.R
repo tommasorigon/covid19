@@ -50,7 +50,8 @@ load_vaccini <- function() {
     fornitore = dt$fornitore,
     prima_dose = dt$prima_dose,
     seconda_dose = dt$seconda_dose,
-    dosi_totali = dt$prima_dose + dt$seconda_dose,
+    pregressa_infezione = dt$pregressa_infezione,
+    dosi_totali = dt$prima_dose + dt$seconda_dose + dt$pregressa_infezione,
     fascia_anagrafica = factor(dt$fascia_anagrafica)
   ) 
   # dt <- dt %>% filter(data < max(data))
@@ -59,7 +60,7 @@ load_vaccini <- function() {
   dt$regione[dt$regione == "Valle d'Aosta / Vallée d'Aoste"] <- "Valle d'Aosta"
   dt$regione[dt$regione == "Friuli-Venezia Giulia"] <- "Friuli Venezia Giulia"
   
-  dt <- dt %>% mutate(ciclo_concluso = seconda_dose) %>%
+  dt <- dt %>% mutate(ciclo_concluso = seconda_dose + pregressa_infezione) %>%
     mutate(ciclo_concluso = replace(ciclo_concluso, fornitore == "Janssen", prima_dose[fornitore == "Janssen"]))
 }
 
