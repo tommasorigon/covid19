@@ -160,11 +160,6 @@ ui <- fluidPage(
             choices = c("Tutte", levels(dt_vacc$fascia_anagrafica)), multiple = T,
             selected = c("Tutte", "70-79", "80-89")
           ),
-          selectInput(
-            inputId = "dose", label = strong("Seleziona tipologia di dato"),
-            choices = c("Prima dose", "Ciclo vaccinale completo"),
-            selected = "Prima dose"
-          ),
           hr(),
           HTML("Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti."),
           hr(),
@@ -175,7 +170,7 @@ ui <- fluidPage(
             tabPanel(
               "Fasce d'età",
               hr(),
-              HTML("Nel grafico sottostante è riportato il numero cumulato percentuale di vaccinazioni effettuate (dato grezzo). Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-15."),
+              HTML("Nel grafico sottostante è riportato il numero cumulato percentuale di vaccinazioni effettuate (dato grezzo). Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-11."),
               hr(),
               dygraphOutput("vaccini"),
               hr(),
@@ -195,7 +190,7 @@ ui <- fluidPage(
             tabPanel(
               "Regioni",
               hr(),
-              HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-15."),
+              HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-11."),
               hr(),
               DTOutput("tbl_reg"),
               hr()
@@ -203,11 +198,9 @@ ui <- fluidPage(
             tabPanel(
               "Tipologia vaccino",
               hr(),
-              HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-15."),
+              HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-11."),
               hr(),
-              DTOutput("tbl_vacc1"),
-              hr(),
-              DTOutput("tbl_vacc2")
+              DTOutput("tbl_vacc1")
             )
           )
         )
@@ -300,15 +293,12 @@ server <- function(input, output) {
 
   output$vaccini <- renderDygraph({
     
-    if(input$dose == "Prima dose"){
-      data_plot <- dt_vacc_eta$prima
-    } else {
-      data_plot <- dt_vacc_eta$ciclo_concluso
-    }
+
+    data_plot <- dt_vacc_eta$ciclo_concluso
 
     data_plot <- xts(data_plot[input$eta], data_plot$data)
     dygraph(data_plot,
-            main = paste("Popolazione vaccinata (%) -", input$dose),
+            main = "Popolazione vaccinata (%) - Ciclo vaccinale completo",
             ylab = paste("Popolazione vaccinata (%)")
     ) %>%
       dyOptions(
@@ -319,8 +309,8 @@ server <- function(input, output) {
   
   output$somministrazioni <- renderDygraph({
     
-    data_plot <- aggregate(prima_dose + seconda_dose ~ data, sum, data = dt_vacc)
-    data_plot <- xts(tibble(`Dosi` = data_plot$`prima_dose + seconda_dose`), data_plot$data)
+    data_plot <- aggregate(dosi_totali ~ data, sum, data = dt_vacc)
+    data_plot <- xts(tibble(`Dosi` = data_plot$dosi_totali), data_plot$data)
     dygraph(data_plot,
             main = paste("Dosi somministrate al giorno (Italia)"),
             ylab = paste("Dosi somministrate")
@@ -563,46 +553,28 @@ server <- function(input, output) {
   })
 
   output$tbl_eta <- renderDT({
-    data_tbl <- rbind(tail(dt_vacc_eta$prima_int, 1),
-                            tail(dt_vacc_eta$prima, 1),
-                            tail(dt_vacc_eta$ciclo_concluso_int, 1),
-                            tail(dt_vacc_eta$ciclo_concluso, 1))[, -1]
+    data_tbl <- rbind(tail(dt_vacc_eta$ciclo_concluso_int, 1),
+                      tail(dt_vacc_eta$ciclo_concluso, 1))[, -1]
     data_tbl <- data.frame(t(data_tbl)[c(9,1:8,10),])
-    colnames(data_tbl) <- c("Prima dose", "Prima dose (%)", "Ciclo vaccinale completo", "Ciclo vaccinale completo (%)")
-    data_tbl$Popolazione <- data_tbl$`Prima dose` / data_tbl$`Prima dose (%)` * 100
-    data_tbl <- data_tbl[, c(5, 1:4)]
+    colnames(data_tbl) <- c("Ciclo vaccinale completo", "Ciclo vaccinale completo (%)")
+    data_tbl$Popolazione <- data_tbl$`Ciclo vaccinale completo` / data_tbl$`Ciclo vaccinale completo (%)` * 100
+    data_tbl <- data_tbl[, c(3, 1:2)]
   
-    datatable(data_tbl, rownames = T, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(1, 2, 4), digits = 0, interval = 3, mark = ",") %>% formatRound(columns = c(3, 5), digits = 2)
+    datatable(data_tbl, rownames = T, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(1, 2), digits = 0, interval = 3, mark = ",") %>% formatRound(columns = 3, digits = 2)
   })
   
   output$tbl_reg <- renderDT({
-    datatable(dt_vacc_reg, rownames = F, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(2,3,5), digits = 0, interval = 3, mark = ",") %>% formatRound(columns = c(4, 6), digits = 2)
+    datatable(dt_vacc_reg, rownames = F, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(2,3), digits = 0, interval = 3, mark = ",") %>% formatRound(columns = 4, digits = 2)
   })
 
   output$tbl_vacc1 <- renderDT({
 
-    data_plot <- aggregate(cbind(prima_dose, ciclo_concluso, dosi_totali) ~ fornitore, sum, data = dt_vacc)
-    data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
-    data_plot$prima_dose <- as.numeric(data_plot$prima_dose)
-    data_plot$ciclo_concluso <- as.numeric(data_plot$ciclo_concluso)
-    data_plot$dosi_totali <- as.numeric(data_plot$dosi_totali)
-    colnames(data_plot) <- c("Vaccino", "Prima dose",  "Ciclo vaccinale completo", "Dosi somministrate")
-    datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = c(2:4), digits = 0, interval = 3, mark = ",")
+    data_plot <- aggregate(dosi_totali ~ fornitore, sum, data = dt_vacc)
+    data_plot <- rbind(data_plot, c("Totale", sum(data_plot$dosi_totali)))
+    colnames(data_plot) <- c("Vaccino",  "Dosi somministrate")
+    datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = 2, digits = 0, interval = 3, mark = ",")
   })
 
-  output$tbl_vacc2 <- renderDT({
-    
-    pop <- sum(pop_regioni_eta$popolazione[pop_regioni_eta$eta_class2 != "0-15"])
-    
-    data_plot <- aggregate(cbind(prima_dose, ciclo_concluso) ~ fornitore, sum, data = dt_vacc)
-    data_plot <- rbind(data_plot, c("Totale", colSums(data_plot[, -1])))
-    
-    data_plot$prima_dose <- as.numeric(data_plot$prima_dose) / pop * 100
-    data_plot$ciclo_concluso <- as.numeric(data_plot$ciclo_concluso)/ pop * 100
-    
-    colnames(data_plot) <- c("Vaccino", "Prima dose (% della popolazione)",  "Ciclo vaccinale completo (% della popolazione)")
-    datatable(data_plot, rownames = FALSE, options = list(pageLength = 22, dom = "t")) %>% formatRound(columns = 2:3, digits = 2, mark = ",")
-  })
 }
 
 # Run the application

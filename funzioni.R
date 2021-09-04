@@ -69,16 +69,6 @@ vaccini_eta <- function(dt, pop){
   pop_values <- (pop %>% group_by(eta_class2) %>% summarise(popolazione = sum(popolazione)))$popolazione[c(3:10,2)]
   pop_values <- c(pop_values, sum(pop_values))
   
-  prima <- prima_int <- 
-    dt %>%
-    pivot_wider(data, names_from = fascia_anagrafica, values_from = prima_dose, values_fn = sum, values_fill = 0) %>%
-    mutate(Tutte = rowSums(.[, 2:10], na.rm = T))
-  
-  for (i in 2:ncol(prima)) {
-    prima[, i] <- cumsum(prima[, i]) / pop_values[i - 1] * 100
-    prima_int[, i] <- cumsum(prima_int[, i])
-  }
-
   ciclo_concluso <- ciclo_concluso_int <-
     dt %>%
     pivot_wider(data, names_from = fascia_anagrafica, values_from = ciclo_concluso, values_fn = sum, values_fill = 0) %>%
@@ -89,20 +79,19 @@ vaccini_eta <- function(dt, pop){
     ciclo_concluso_int[, i] <- cumsum(ciclo_concluso_int[, i])
   }
   
-  list(prima = prima, prima_int = prima_int, ciclo_concluso = ciclo_concluso, ciclo_concluso_int = ciclo_concluso_int)
+  list(ciclo_concluso = ciclo_concluso, ciclo_concluso_int = ciclo_concluso_int)
 }
 
 vaccini_reg <- function(dt, pop){
   
-  pop_values <- (pop %>% filter(eta_class2 != "0-15") %>% group_by(regione) %>% summarise(popolazione = sum(popolazione)))$popolazione
+  pop_values <- (pop %>% filter(eta_class2 != "0-11") %>% group_by(regione) %>% summarise(popolazione = sum(popolazione)))$popolazione
 
   dt <- dt %>% group_by(regione) %>%
-    summarize(prima_dose = sum(prima_dose), ciclo_concluso = sum(ciclo_concluso)) %>% 
+    summarize(ciclo_concluso = sum(ciclo_concluso)) %>% 
     mutate(popolazione = pop_values) %>%
-    mutate(prima_dose_perc = prima_dose / pop_values * 100) %>%
     mutate(ciclo_concluso_perc = ciclo_concluso / pop_values * 100)
-  dt <- dt[c(1,4,2,5,3,6)]
-  colnames(dt) <- c("Regione", "Popolazione", "Prima dose", "Prima dose (%)", "Ciclo vaccinale concluso", "Ciclo vaccinale concluso (%)")
+  dt <- dt[c(1,3,2,4)]
+  colnames(dt) <- c("Regione", "Popolazione", "Ciclo vaccinale concluso", "Ciclo vaccinale concluso (%)")
   dt
 }
 
