@@ -150,64 +150,64 @@ ui <- fluidPage(
 
 
 
-    # UI Vaccinazione -------------------------------------------------
-    tabPanel(
-      "Vaccinazione",
-      sidebarLayout(
-        sidebarPanel(
-          selectInput(
-            inputId = "eta", label = strong("Seleziona fascia anagrafica"),
-            choices = c("Tutte", levels(dt_vacc$fascia_anagrafica)), multiple = T,
-            selected = c("Tutte", "70-79", "80-89")
-          ),
-          hr(),
-          HTML("Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti."),
-          hr(),
-          HTML("Per ulteriori informazioni, si rimanda inoltre alla documentazione presente su questo sito.")
-        ),
-        mainPanel(
-          tabsetPanel(
-            tabPanel(
-              "Fasce d'età",
-              hr(),
-              HTML("Nel grafico sottostante è riportato il numero cumulato percentuale di vaccinazioni effettuate (dato grezzo). Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-11."),
-              hr(),
-              dygraphOutput("vaccini"),
-              hr(),
-              DTOutput("tbl_eta"),
-              hr()
-            ),
-            tabPanel(
-              "Somministrazioni giornaliere",
-              hr(),
-              HTML("Nel grafico sottostante è riportato il <b>numero giornaliero di dosi somministrate</b> a livello nazionale (dato grezzo), indipendentemente dalla tipologia di vaccino, dalle fasce d'età  e considerando sia le prime dosi che le seconde dosi. L'obiettivo dichiarato dal commissario straordinario per l'emergenza Covid è di somministrare circa <b>500.000 dosi giornaliere.</b>" ),
-              hr(),
-              HTML("I dati relativi all'ultimo giorno disponibile vanno interpretati con una certa cautela, perchè vengono resi pubblici ad orari diversi da regione a regione. I dati tipicamente si consolidano e diventano definitivi nell'arco di 24h." ),
-              hr(),
-              dygraphOutput("somministrazioni"),
-              hr()
-            ),
-            tabPanel(
-              "Regioni",
-              hr(),
-              HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-11."),
-              hr(),
-              DTOutput("tbl_reg"),
-              hr()
-            ),
-            tabPanel(
-              "Tipologia vaccino",
-              hr(),
-              HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-11."),
-              hr(),
-              DTOutput("tbl_vacc1")
-            )
-          )
-        )
-      )
-    ),
-    
-    # UI Documentazione -----------------------------------------
+    # # UI Vaccinazione -------------------------------------------------
+    # tabPanel(
+    #   "Vaccinazione",
+    #   sidebarLayout(
+    #     sidebarPanel(
+    #       selectInput(
+    #         inputId = "eta", label = strong("Seleziona fascia anagrafica"),
+    #         choices = c("Tutte", levels(dt_vacc$fascia_anagrafica)), multiple = T,
+    #         selected = c("Tutte", "70-79", "80-89")
+    #       ),
+    #       hr(),
+    #       HTML("Gli autori di questa applicazione sono <a href='https://www.unimib.it/matteo-maria-pelagatti'><b>Matteo Pelagatti</b></a> e <a href='https://tommasorigon.github.io'><b>Tommaso Rigon</b></a>, a cui è possibile scrivere per eventuali segnalazioni e richieste di chiarimenti."),
+    #       hr(),
+    #       HTML("Per ulteriori informazioni, si rimanda inoltre alla documentazione presente su questo sito.")
+    #     ),
+    #     mainPanel(
+    #       tabsetPanel(
+    #         tabPanel(
+    #           "Fasce d'età",
+    #           hr(),
+    #           HTML("Nel grafico sottostante è riportato il numero cumulato percentuale di vaccinazioni effettuate (dato grezzo). Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-11."),
+    #           hr(),
+    #           dygraphOutput("vaccini"),
+    #           hr(),
+    #           DTOutput("tbl_eta"),
+    #           hr()
+    #         ),
+    #         tabPanel(
+    #           "Somministrazioni giornaliere",
+    #           hr(),
+    #           HTML("Nel grafico sottostante è riportato il <b>numero giornaliero di dosi somministrate</b> a livello nazionale (dato grezzo), indipendentemente dalla tipologia di vaccino, dalle fasce d'età  e considerando sia le prime dosi che le seconde dosi. L'obiettivo dichiarato dal commissario straordinario per l'emergenza Covid è di somministrare circa <b>500.000 dosi giornaliere.</b>" ),
+    #           hr(),
+    #           HTML("I dati relativi all'ultimo giorno disponibile vanno interpretati con una certa cautela, perchè vengono resi pubblici ad orari diversi da regione a regione. I dati tipicamente si consolidano e diventano definitivi nell'arco di 24h." ),
+    #           hr(),
+    #           dygraphOutput("somministrazioni"),
+    #           hr()
+    #         ),
+    #         tabPanel(
+    #           "Regioni",
+    #           hr(),
+    #           HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-11."),
+    #           hr(),
+    #           DTOutput("tbl_reg"),
+    #           hr()
+    #         ),
+    #         tabPanel(
+    #           "Tipologia vaccino",
+    #           hr(),
+    #           HTML("Per <b>ciclo vaccinale completo</b> si intende il numero di persone a cui è stata somministrata la seconda dose dei vaccini Pfizer, Astrazeneca, Moderna, a cui si aggiunge il numero di persone a cui è stata somministrata la prima dose del vaccino Janssen (J&J). Sono esclusi dalla <b>popolazione</b> di riferimento i residenti appartenenti alla fascia d'età 0-11."),
+    #           hr(),
+    #           DTOutput("tbl_vacc1")
+    #         )
+    #       )
+    #     )
+    #   )
+    # ),
+    # 
+    # # UI Documentazione -----------------------------------------
     tabPanel(
       "Documentazione",
       fluidRow(
